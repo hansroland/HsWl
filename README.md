@@ -14,3 +14,12 @@ Currently this directory contains the code upto the chapter [example-code](https
 #### TODO
 
 Add additional requests from the folllowing chapters
+
+## 1_FFI
+
+This directory contains a more or less simple translation of the code in the `Book` directory from C to Haskell. I think the result is rather clumsy. Therefore I won't add additional code.
+
+#### Status
+
+At the moment, the code up to the extended example has been translated to Haskell. However the checkerboard background has not been implemented.
+
