@@ -1,7 +1,9 @@
 # HsWl Haskell Wayland Client
 
+This is a proof of concept, that it's possible to write a Wayland client in Haskell
+withour calling the libwayland client library via FFI. The code implements the Wayland wire protocol.
 
-The project has the following subdirectories:
+We have the following subdirectories:
 
 ## 0_Book
 
@@ -30,6 +32,10 @@ This directory contains a generator application to generate Haskell functions fo
 
 #### Status
 
-The generator is in alpha state. It generates al the functions from the wayland.xml and xdg-shell.xml files. 
+The generator is in alpha state. It generates al the functions from the wayland.xml and xdg-shell.xml files.
 
 Additional changes will be needed during the development of the client. The `enums` are still missing.
+
+## 3_Client
+
+This directory contains a extremly simple Haskell client for Wayland.

@@ -1,0 +1,53 @@
+cabal-version:      3.0
+name:               Client
+version:            0.1.0.0
+synopsis:           Write a simple Wayland Haskel client
+-- description:
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Roland Senn
+maintainer:         rsx@bluewin.ch
+-- copyright:
+category:           System
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+library
+    import:           warnings
+    exposed-modules:  Client
+                      , Types
+                      , Wire
+                      , WireSupport
+                      , ClientSupport
+    other-modules:    WaylandSocket
+    C-sources:           cbits/wayland-msg-handling.c
+    include-dirs:        cbits
+    -- other-extensions:
+    build-depends:    base ^>=4.17.0.0
+                      , mtl
+                      , network
+                      , unix
+                      , stm
+                      , bytestring
+                      , text
+                      , binary
+    hs-source-dirs:   cbits, src
+    default-language: Haskell2010
+
+executable client
+    import:           warnings
+    main-is:          Main.hs
+    -- other-extensions:
+    build-depends:    base ^>=4.17.0.0
+                      , mtl
+                      , text
+                      , network
+                      , Client
+
+
+    hs-source-dirs:   app
+    default-language: Haskell2010

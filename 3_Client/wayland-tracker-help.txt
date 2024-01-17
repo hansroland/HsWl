@@ -1,0 +1,4 @@
+Running the wayland-track when wayland-client in current directory:
+    wayland-tracker simple -x wayland.xml ./client
+    wayland-tracker json   -x wayland.xml ./client
+    wayland-tracker binary  ./client

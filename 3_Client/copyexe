@@ -1,0 +1,1 @@
+cp ./dist-newstyle/build/x86_64-linux/ghc-9.4.4/Client-0.1.0.0/x/client/build/client/client ./client
