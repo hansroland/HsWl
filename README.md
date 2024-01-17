@@ -23,3 +23,13 @@ This directory contains a more or less simple translation of the code in the `Bo
 
 At the moment, the code up to the extended example has been translated to Haskell. However the checkerboard background has not been implemented.
 
+
+## 2_Generator
+
+This directory contains a generator application to generate Haskell functions for the Wayland request and event-handling functions from the defining xml files.
+
+#### Status
+
+The generator is in alpha state. It generates al the functions from the wayland.xml and xdg-shell.xml files. 
+
+Additional changes will be needed during the development of the client. The `enums` are still missing.
