@@ -1,0 +1,2300 @@
+{
+    "message": {
+        "type": "Request",
+        "name": "sync",
+        "object": 1,
+        "interface": "wl_display",
+        "arguments": [
+            {
+                "name": "callback",
+                "value": {
+                    "type": "NewId",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.098402329s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "get_registry",
+        "object": 1,
+        "interface": "wl_display",
+        "arguments": [
+            {
+                "name": "registry",
+                "value": {
+                    "type": "NewId",
+                    "value": 2
+                }
+            }
+        ]
+    },
+    "timestamp": "0.098402329s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "delete_id",
+        "object": 1,
+        "interface": "wl_display",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "UInt",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "done",
+        "object": 3,
+        "interface": "wl_callback",
+        "arguments": [
+            {
+                "name": "callback_data",
+                "value": {
+                    "type": "UInt",
+                    "value": 1655
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 36
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_output"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 35
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_pointer_gestures_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 34
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_seat"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 7
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 33
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_keyboard_shortcuts_inhibit_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 32
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_input_inhibit_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 31
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_virtual_pointer_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 2
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 30
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_virtual_keyboard_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 29
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wp_viewporter"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 28
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_primary_selection_device_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 27
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_data_control_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 2
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 26
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_screencopy_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 25
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_export_dmabuf_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 24
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_foreign_toplevel_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 2
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 23
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_text_input_manager_v3"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 22
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_input_method_manager_v2"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 21
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_output_power_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 20
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_output_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 19
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wp_presentation"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 18
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_pointer_constraints_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 17
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_relative_pointer_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 16
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zxdg_decoration_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 15
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "org_kde_kwin_server_decoration_manager"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 14
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_tablet_manager_v2"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 13
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "xdg_wm_base"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 2
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 12
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_layer_shell_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 2
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 11
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_idle_inhibit_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 10
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "org_kde_kwin_idle"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 9
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zxdg_output_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 8
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "gtk_primary_selection_device_manager"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 7
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwlr_gamma_control_manager_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 6
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_data_device_manager"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 5
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_subcompositor"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 4
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_compositor"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 4
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 3
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "zwp_linux_dmabuf_v1"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 2
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_drm"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 2
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "global",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_shm"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.114202804s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "commit",
+        "object": 3,
+        "interface": "wl_surface",
+        "arguments": []
+    },
+    "timestamp": "0.137090716s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "set_title",
+        "object": 8,
+        "interface": "xdg_toplevel",
+        "arguments": [
+            {
+                "name": "title",
+                "value": {
+                    "type": "String",
+                    "value": "Example client"
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137090716s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "get_toplevel",
+        "object": 7,
+        "interface": "xdg_surface",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 8
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137090716s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "get_xdg_surface",
+        "object": 6,
+        "interface": "xdg_wm_base",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 7
+                }
+            },
+            {
+                "name": "surface",
+                "value": {
+                    "type": "Object",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137090716s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "create_surface",
+        "object": 5,
+        "interface": "wl_compositor",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 3
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137090716s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "bind",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 13
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "xdg_wm_base"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            },
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 6
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137090716s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "bind",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 4
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_compositor"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 4
+                }
+            },
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 5
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137090716s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "bind",
+        "object": 2,
+        "interface": "wl_registry",
+        "arguments": [
+            {
+                "name": "name",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            },
+            {
+                "name": "interface",
+                "value": {
+                    "type": "String",
+                    "value": "wl_shm"
+                }
+            },
+            {
+                "name": "version",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            },
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 4
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137090716s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "configure",
+        "object": 7,
+        "interface": "xdg_surface",
+        "arguments": [
+            {
+                "name": "serial",
+                "value": {
+                    "type": "UInt",
+                    "value": 1656
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137726948s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "configure",
+        "object": 8,
+        "interface": "xdg_toplevel",
+        "arguments": [
+            {
+                "name": "width",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            },
+            {
+                "name": "height",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            },
+            {
+                "name": "states",
+                "value": {
+                    "type": "Array",
+                    "value": ""
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137726948s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "ping",
+        "object": 6,
+        "interface": "xdg_wm_base",
+        "arguments": [
+            {
+                "name": "serial",
+                "value": {
+                    "type": "UInt",
+                    "value": 1657
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137726948s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "format",
+        "object": 4,
+        "interface": "wl_shm",
+        "arguments": [
+            {
+                "name": "format",
+                "value": {
+                    "type": "UInt",
+                    "value": 875708993
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137726948s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "format",
+        "object": 4,
+        "interface": "wl_shm",
+        "arguments": [
+            {
+                "name": "format",
+                "value": {
+                    "type": "UInt",
+                    "value": 875709016
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137726948s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "format",
+        "object": 4,
+        "interface": "wl_shm",
+        "arguments": [
+            {
+                "name": "format",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137726948s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "format",
+        "object": 4,
+        "interface": "wl_shm",
+        "arguments": [
+            {
+                "name": "format",
+                "value": {
+                    "type": "UInt",
+                    "value": 0
+                }
+            }
+        ]
+    },
+    "timestamp": "0.137726948s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "commit",
+        "object": 3,
+        "interface": "wl_surface",
+        "arguments": []
+    },
+    "timestamp": "0.138160953s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "attach",
+        "object": 3,
+        "interface": "wl_surface",
+        "arguments": [
+            {
+                "name": "buffer",
+                "value": {
+                    "type": "Object",
+                    "value": 10
+                }
+            },
+            {
+                "name": "x",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            },
+            {
+                "name": "y",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138160953s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "destroy",
+        "object": 9,
+        "interface": "wl_shm_pool",
+        "arguments": []
+    },
+    "timestamp": "0.138160953s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "create_buffer",
+        "object": 9,
+        "interface": "wl_shm_pool",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 10
+                }
+            },
+            {
+                "name": "offset",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            },
+            {
+                "name": "width",
+                "value": {
+                    "type": "Int",
+                    "value": 640
+                }
+            },
+            {
+                "name": "height",
+                "value": {
+                    "type": "Int",
+                    "value": 480
+                }
+            },
+            {
+                "name": "stride",
+                "value": {
+                    "type": "Int",
+                    "value": 2560
+                }
+            },
+            {
+                "name": "format",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138160953s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "create_pool",
+        "object": 4,
+        "interface": "wl_shm",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 9
+                }
+            },
+            {
+                "name": "fd",
+                "value": {
+                    "type": "Fd"
+                }
+            },
+            {
+                "name": "size",
+                "value": {
+                    "type": "Int",
+                    "value": 1228800
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138160953s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "ack_configure",
+        "object": 7,
+        "interface": "xdg_surface",
+        "arguments": [
+            {
+                "name": "serial",
+                "value": {
+                    "type": "UInt",
+                    "value": 1656
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138160953s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "pong",
+        "object": 6,
+        "interface": "xdg_wm_base",
+        "arguments": [
+            {
+                "name": "serial",
+                "value": {
+                    "type": "UInt",
+                    "value": 1657
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138160953s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "configure",
+        "object": 7,
+        "interface": "xdg_surface",
+        "arguments": [
+            {
+                "name": "serial",
+                "value": {
+                    "type": "UInt",
+                    "value": 1658
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138686259s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "configure",
+        "object": 8,
+        "interface": "xdg_toplevel",
+        "arguments": [
+            {
+                "name": "width",
+                "value": {
+                    "type": "Int",
+                    "value": 636
+                }
+            },
+            {
+                "name": "height",
+                "value": {
+                    "type": "Int",
+                    "value": 982
+                }
+            },
+            {
+                "name": "states",
+                "value": {
+                    "type": "Array",
+                    "value": "0400000001000000"
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138686259s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "release",
+        "object": 10,
+        "interface": "wl_buffer",
+        "arguments": []
+    },
+    "timestamp": "0.138686259s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "delete_id",
+        "object": 1,
+        "interface": "wl_display",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "UInt",
+                    "value": 9
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138686259s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "commit",
+        "object": 3,
+        "interface": "wl_surface",
+        "arguments": []
+    },
+    "timestamp": "0.138901484s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "attach",
+        "object": 3,
+        "interface": "wl_surface",
+        "arguments": [
+            {
+                "name": "buffer",
+                "value": {
+                    "type": "Object",
+                    "value": 11
+                }
+            },
+            {
+                "name": "x",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            },
+            {
+                "name": "y",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138901484s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "destroy",
+        "object": 9,
+        "interface": "wl_shm_pool",
+        "arguments": []
+    },
+    "timestamp": "0.138901484s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "create_buffer",
+        "object": 9,
+        "interface": "wl_shm_pool",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 11
+                }
+            },
+            {
+                "name": "offset",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            },
+            {
+                "name": "width",
+                "value": {
+                    "type": "Int",
+                    "value": 640
+                }
+            },
+            {
+                "name": "height",
+                "value": {
+                    "type": "Int",
+                    "value": 480
+                }
+            },
+            {
+                "name": "stride",
+                "value": {
+                    "type": "Int",
+                    "value": 2560
+                }
+            },
+            {
+                "name": "format",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138901484s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "create_pool",
+        "object": 4,
+        "interface": "wl_shm",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 9
+                }
+            },
+            {
+                "name": "fd",
+                "value": {
+                    "type": "Fd"
+                }
+            },
+            {
+                "name": "size",
+                "value": {
+                    "type": "Int",
+                    "value": 1228800
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138901484s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "ack_configure",
+        "object": 7,
+        "interface": "xdg_surface",
+        "arguments": [
+            {
+                "name": "serial",
+                "value": {
+                    "type": "UInt",
+                    "value": 1658
+                }
+            }
+        ]
+    },
+    "timestamp": "0.138901484s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "destroy",
+        "object": 10,
+        "interface": "wl_buffer",
+        "arguments": []
+    },
+    "timestamp": "0.138901484s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "release",
+        "object": 11,
+        "interface": "wl_buffer",
+        "arguments": []
+    },
+    "timestamp": "0.139485382s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "delete_id",
+        "object": 1,
+        "interface": "wl_display",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "UInt",
+                    "value": 9
+                }
+            }
+        ]
+    },
+    "timestamp": "0.139485382s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "delete_id",
+        "object": 1,
+        "interface": "wl_display",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "UInt",
+                    "value": 10
+                }
+            }
+        ]
+    },
+    "timestamp": "0.139485382s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "destroy",
+        "object": 11,
+        "interface": "wl_buffer",
+        "arguments": []
+    },
+    "timestamp": "0.139601384s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "configure",
+        "object": 7,
+        "interface": "xdg_surface",
+        "arguments": [
+            {
+                "name": "serial",
+                "value": {
+                    "type": "UInt",
+                    "value": 1661
+                }
+            }
+        ]
+    },
+    "timestamp": "1.457623995s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "configure",
+        "object": 8,
+        "interface": "xdg_toplevel",
+        "arguments": [
+            {
+                "name": "width",
+                "value": {
+                    "type": "Int",
+                    "value": 636
+                }
+            },
+            {
+                "name": "height",
+                "value": {
+                    "type": "Int",
+                    "value": 982
+                }
+            },
+            {
+                "name": "states",
+                "value": {
+                    "type": "Array",
+                    "value": "01000000"
+                }
+            }
+        ]
+    },
+    "timestamp": "1.457623995s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "delete_id",
+        "object": 1,
+        "interface": "wl_display",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "UInt",
+                    "value": 11
+                }
+            }
+        ]
+    },
+    "timestamp": "1.457623995s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "commit",
+        "object": 3,
+        "interface": "wl_surface",
+        "arguments": []
+    },
+    "timestamp": "1.459697772s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "attach",
+        "object": 3,
+        "interface": "wl_surface",
+        "arguments": [
+            {
+                "name": "buffer",
+                "value": {
+                    "type": "Object",
+                    "value": 9
+                }
+            },
+            {
+                "name": "x",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            },
+            {
+                "name": "y",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            }
+        ]
+    },
+    "timestamp": "1.459697772s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "destroy",
+        "object": 11,
+        "interface": "wl_shm_pool",
+        "arguments": []
+    },
+    "timestamp": "1.459697772s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "create_buffer",
+        "object": 11,
+        "interface": "wl_shm_pool",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 9
+                }
+            },
+            {
+                "name": "offset",
+                "value": {
+                    "type": "Int",
+                    "value": 0
+                }
+            },
+            {
+                "name": "width",
+                "value": {
+                    "type": "Int",
+                    "value": 640
+                }
+            },
+            {
+                "name": "height",
+                "value": {
+                    "type": "Int",
+                    "value": 480
+                }
+            },
+            {
+                "name": "stride",
+                "value": {
+                    "type": "Int",
+                    "value": 2560
+                }
+            },
+            {
+                "name": "format",
+                "value": {
+                    "type": "UInt",
+                    "value": 1
+                }
+            }
+        ]
+    },
+    "timestamp": "1.459697772s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "create_pool",
+        "object": 4,
+        "interface": "wl_shm",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "NewId",
+                    "value": 11
+                }
+            },
+            {
+                "name": "fd",
+                "value": {
+                    "type": "Fd"
+                }
+            },
+            {
+                "name": "size",
+                "value": {
+                    "type": "Int",
+                    "value": 1228800
+                }
+            }
+        ]
+    },
+    "timestamp": "1.459697772s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "ack_configure",
+        "object": 7,
+        "interface": "xdg_surface",
+        "arguments": [
+            {
+                "name": "serial",
+                "value": {
+                    "type": "UInt",
+                    "value": 1661
+                }
+            }
+        ]
+    },
+    "timestamp": "1.459697772s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "release",
+        "object": 9,
+        "interface": "wl_buffer",
+        "arguments": []
+    },
+    "timestamp": "1.461336952s"
+}
+{
+    "message": {
+        "type": "Event",
+        "name": "delete_id",
+        "object": 1,
+        "interface": "wl_display",
+        "arguments": [
+            {
+                "name": "id",
+                "value": {
+                    "type": "UInt",
+                    "value": 11
+                }
+            }
+        ]
+    },
+    "timestamp": "1.461336952s"
+}
+{
+    "message": {
+        "type": "Request",
+        "name": "destroy",
+        "object": 9,
+        "interface": "wl_buffer",
+        "arguments": []
+    },
+    "timestamp": "1.462063316s"
+}
