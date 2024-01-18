@@ -29,7 +29,9 @@ import qualified Control.Concurrent.STM     as STM
 
 import qualified Data.Text as T
 import Data.Text (Text)
+import Data.Maybe
 import Text.Printf
+import Data.List
 import Control.Monad.State.Strict
 
 
@@ -47,6 +49,11 @@ addRequest bs = do
     liftIO $ putStrLn $ "Add Request: " <> (toHexString . BL.fromChunks . return) bs
     put $ st {clReqs = bs : clReqs st}
 
+-- Get an WObj from the interface text name
+getObjectId :: Text -> ClMonad WObj
+getObjectId txt = do
+    st <- get
+    pure $ fst $ fromMaybe (0, T.empty) (find ((==) txt . snd ) (clActiveIfaces st))
 
 -- --------------------------------------------------------------------
 

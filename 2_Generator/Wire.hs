@@ -83,17 +83,17 @@ cXdgPopup = "xdg_popup"
 --  Interface: WlDisplay - core global object
 
 --  Req: asynchronous roundtrip opc:0
-wlDisplaySync :: Text -> ClState -> WNewId -> BS.ByteString
-wlDisplaySync ifac st callback = runByteString $ do
-    putTObjId ifac st
+wlDisplaySync :: WObj -> WNewId -> BS.ByteString
+wlDisplaySync wobj callback = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 12
     put callback
 
 --  Req: get global registry object opc:1
-wlDisplayGetRegistry :: Text -> ClState -> WNewId -> BS.ByteString
-wlDisplayGetRegistry ifac st registry = runByteString $ do
-    putTObjId ifac st
+wlDisplayGetRegistry :: WObj -> WNewId -> BS.ByteString
+wlDisplayGetRegistry wobj registry = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 12
     put registry
@@ -101,9 +101,9 @@ wlDisplayGetRegistry ifac st registry = runByteString $ do
 --  Interface: WlRegistry - global registry object
 
 --  Req: bind an object to the display opc:0
-wlRegistryBind :: Text -> ClState -> WUint -> WNewId -> BS.ByteString
-wlRegistryBind ifac st name xid = runByteString $ do
-    putTObjId ifac st
+wlRegistryBind :: WObj -> WUint -> WNewId -> BS.ByteString
+wlRegistryBind wobj name xid = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 16
     put name
@@ -112,17 +112,17 @@ wlRegistryBind ifac st name xid = runByteString $ do
 --  Interface: WlCompositor - the compositor singleton
 
 --  Req: create new surface opc:0
-wlCompositorCreateSurface :: Text -> ClState -> WNewId -> BS.ByteString
-wlCompositorCreateSurface ifac st xid = runByteString $ do
-    putTObjId ifac st
+wlCompositorCreateSurface :: WObj -> WNewId -> BS.ByteString
+wlCompositorCreateSurface wobj xid = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 12
     put xid
 
 --  Req: create new region opc:1
-wlCompositorCreateRegion :: Text -> ClState -> WNewId -> BS.ByteString
-wlCompositorCreateRegion ifac st xid = runByteString $ do
-    putTObjId ifac st
+wlCompositorCreateRegion :: WObj -> WNewId -> BS.ByteString
+wlCompositorCreateRegion wobj xid = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 12
     put xid
@@ -130,9 +130,9 @@ wlCompositorCreateRegion ifac st xid = runByteString $ do
 --  Interface: WlShmPool - a shared memory pool
 
 --  Req: create a buffer from the pool opc:0
-wlShmPoolCreateBuffer :: Text -> ClState -> WNewId -> WInt -> WInt -> WInt -> WInt -> WUint -> BS.ByteString
-wlShmPoolCreateBuffer ifac st xid offset width height stride format = runByteString $ do
-    putTObjId ifac st
+wlShmPoolCreateBuffer :: WObj -> WNewId -> WInt -> WInt -> WInt -> WInt -> WUint -> BS.ByteString
+wlShmPoolCreateBuffer wobj xid offset width height stride format = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 32
     put xid
@@ -143,16 +143,16 @@ wlShmPoolCreateBuffer ifac st xid offset width height stride format = runByteStr
     put format
 
 --  Req: destroy the pool opc:1
-wlShmPoolDestroy :: Text -> ClState -> BS.ByteString
-wlShmPoolDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+wlShmPoolDestroy :: WObj -> BS.ByteString
+wlShmPoolDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 8
 
 --  Req: change the size of the pool mapping opc:2
-wlShmPoolResize :: Text -> ClState -> WInt -> BS.ByteString
-wlShmPoolResize ifac st size = runByteString $ do
-    putTObjId ifac st
+wlShmPoolResize :: WObj -> WInt -> BS.ByteString
+wlShmPoolResize wobj size = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 12
     put size
@@ -160,9 +160,9 @@ wlShmPoolResize ifac st size = runByteString $ do
 --  Interface: WlShm - shared memory support
 
 --  Req: create a shm pool opc:0
-wlShmCreatePool :: Text -> ClState -> WNewId -> WFd -> WInt -> BS.ByteString
-wlShmCreatePool ifac st xid fd size = runByteString $ do
-    putTObjId ifac st
+wlShmCreatePool :: WObj -> WNewId -> WFd -> WInt -> BS.ByteString
+wlShmCreatePool wobj xid fd size = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 16
     put xid
@@ -172,18 +172,18 @@ wlShmCreatePool ifac st xid fd size = runByteString $ do
 --  Interface: WlBuffer - content for a wl_surface
 
 --  Req: destroy a buffer opc:0
-wlBufferDestroy :: Text -> ClState -> BS.ByteString
-wlBufferDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+wlBufferDestroy :: WObj -> BS.ByteString
+wlBufferDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Interface: WlDataOffer - offer to transfer data
 
 --  Req: accept one of the offered mime types opc:0
-wlDataOfferAccept :: Text -> ClState -> WUint -> WString -> BS.ByteString
-wlDataOfferAccept ifac st serial mimeType = runByteString $ do
-    putTObjId ifac st
+wlDataOfferAccept :: WObj -> WUint -> WString -> BS.ByteString
+wlDataOfferAccept wobj serial mimeType = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host  $ fromIntegral len
     put serial
@@ -191,9 +191,9 @@ wlDataOfferAccept ifac st serial mimeType = runByteString $ do
   where len = 12 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: request that the data is transferred opc:1
-wlDataOfferReceive :: Text -> ClState -> WString -> WFd -> BS.ByteString
-wlDataOfferReceive ifac st mimeType fd = runByteString $ do
-    putTObjId ifac st
+wlDataOfferReceive :: WObj -> WString -> WFd -> BS.ByteString
+wlDataOfferReceive wobj mimeType fd = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host  $ fromIntegral len
     put mimeType
@@ -201,23 +201,23 @@ wlDataOfferReceive ifac st mimeType fd = runByteString $ do
   where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: destroy data offer opc:2
-wlDataOfferDestroy :: Text -> ClState -> BS.ByteString
-wlDataOfferDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+wlDataOfferDestroy :: WObj -> BS.ByteString
+wlDataOfferDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 8
 
 --  Req: the offer will no longer be used opc:3
-wlDataOfferFinish :: Text -> ClState -> BS.ByteString
-wlDataOfferFinish ifac st  = runByteString $ do
-    putTObjId ifac st
+wlDataOfferFinish :: WObj -> BS.ByteString
+wlDataOfferFinish wobj  = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host 8
 
 --  Req: set the available/preferred drag-and-drop actions opc:4
-wlDataOfferSetActions :: Text -> ClState -> WUint -> WUint -> BS.ByteString
-wlDataOfferSetActions ifac st dndActions preferredAction = runByteString $ do
-    putTObjId ifac st
+wlDataOfferSetActions :: WObj -> WUint -> WUint -> BS.ByteString
+wlDataOfferSetActions wobj dndActions preferredAction = runByteString $ do
+    put wobj
     put $ WOpc 4
     putWord16host 16
     put dndActions
@@ -226,25 +226,25 @@ wlDataOfferSetActions ifac st dndActions preferredAction = runByteString $ do
 --  Interface: WlDataSource - offer to transfer data
 
 --  Req: add an offered mime type opc:0
-wlDataSourceOffer :: Text -> ClState -> WString -> BS.ByteString
-wlDataSourceOffer ifac st mimeType = runByteString $ do
-    putTObjId ifac st
+wlDataSourceOffer :: WObj -> WString -> BS.ByteString
+wlDataSourceOffer wobj mimeType = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host  $ fromIntegral len
     put mimeType
   where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: destroy the data source opc:1
-wlDataSourceDestroy :: Text -> ClState -> BS.ByteString
-wlDataSourceDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+wlDataSourceDestroy :: WObj -> BS.ByteString
+wlDataSourceDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 8
 
 --  Req: set the available drag-and-drop actions opc:2
-wlDataSourceSetActions :: Text -> ClState -> WUint -> BS.ByteString
-wlDataSourceSetActions ifac st dndActions = runByteString $ do
-    putTObjId ifac st
+wlDataSourceSetActions :: WObj -> WUint -> BS.ByteString
+wlDataSourceSetActions wobj dndActions = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 12
     put dndActions
@@ -252,9 +252,9 @@ wlDataSourceSetActions ifac st dndActions = runByteString $ do
 --  Interface: WlDataDevice - data transfer device
 
 --  Req: start drag-and-drop operation opc:0
-wlDataDeviceStartDrag :: Text -> ClState -> WObj -> WObj -> WObj -> WUint -> BS.ByteString
-wlDataDeviceStartDrag ifac st source origin icon serial = runByteString $ do
-    putTObjId ifac st
+wlDataDeviceStartDrag :: WObj -> WObj -> WObj -> WObj -> WUint -> BS.ByteString
+wlDataDeviceStartDrag wobj source origin icon serial = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 24
     put source
@@ -263,35 +263,35 @@ wlDataDeviceStartDrag ifac st source origin icon serial = runByteString $ do
     put serial
 
 --  Req: copy data to the selection opc:1
-wlDataDeviceSetSelection :: Text -> ClState -> WObj -> WUint -> BS.ByteString
-wlDataDeviceSetSelection ifac st source serial = runByteString $ do
-    putTObjId ifac st
+wlDataDeviceSetSelection :: WObj -> WObj -> WUint -> BS.ByteString
+wlDataDeviceSetSelection wobj source serial = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 16
     put source
     put serial
 
 --  Req: destroy data device opc:2
-wlDataDeviceRelease :: Text -> ClState -> BS.ByteString
-wlDataDeviceRelease ifac st  = runByteString $ do
-    putTObjId ifac st
+wlDataDeviceRelease :: WObj -> BS.ByteString
+wlDataDeviceRelease wobj  = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 8
 
 --  Interface: WlDataDeviceManager - data transfer interface
 
 --  Req: create a new data source opc:0
-wlDataDeviceManagerCreateDataSource :: Text -> ClState -> WNewId -> BS.ByteString
-wlDataDeviceManagerCreateDataSource ifac st xid = runByteString $ do
-    putTObjId ifac st
+wlDataDeviceManagerCreateDataSource :: WObj -> WNewId -> BS.ByteString
+wlDataDeviceManagerCreateDataSource wobj xid = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 12
     put xid
 
 --  Req: create a new data device opc:1
-wlDataDeviceManagerGetDataDevice :: Text -> ClState -> WNewId -> WObj -> BS.ByteString
-wlDataDeviceManagerGetDataDevice ifac st xid seat = runByteString $ do
-    putTObjId ifac st
+wlDataDeviceManagerGetDataDevice :: WObj -> WNewId -> WObj -> BS.ByteString
+wlDataDeviceManagerGetDataDevice wobj xid seat = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 16
     put xid
@@ -300,9 +300,9 @@ wlDataDeviceManagerGetDataDevice ifac st xid seat = runByteString $ do
 --  Interface: WlShell - create desktop-style surfaces
 
 --  Req: create a shell surface from a surface opc:0
-wlShellGetShellSurface :: Text -> ClState -> WNewId -> WObj -> BS.ByteString
-wlShellGetShellSurface ifac st xid surface = runByteString $ do
-    putTObjId ifac st
+wlShellGetShellSurface :: WObj -> WNewId -> WObj -> BS.ByteString
+wlShellGetShellSurface wobj xid surface = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 16
     put xid
@@ -311,26 +311,26 @@ wlShellGetShellSurface ifac st xid surface = runByteString $ do
 --  Interface: WlShellSurface - desktop-style metadata interface
 
 --  Req: respond to a ping event opc:0
-wlShellSurfacePong :: Text -> ClState -> WUint -> BS.ByteString
-wlShellSurfacePong ifac st serial = runByteString $ do
-    putTObjId ifac st
+wlShellSurfacePong :: WObj -> WUint -> BS.ByteString
+wlShellSurfacePong wobj serial = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 12
     put serial
 
 --  Req: start an interactive move opc:1
-wlShellSurfaceMove :: Text -> ClState -> WObj -> WUint -> BS.ByteString
-wlShellSurfaceMove ifac st seat serial = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceMove :: WObj -> WObj -> WUint -> BS.ByteString
+wlShellSurfaceMove wobj seat serial = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 16
     put seat
     put serial
 
 --  Req: start an interactive resize opc:2
-wlShellSurfaceResize :: Text -> ClState -> WObj -> WUint -> WUint -> BS.ByteString
-wlShellSurfaceResize ifac st seat serial edges = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceResize :: WObj -> WObj -> WUint -> WUint -> BS.ByteString
+wlShellSurfaceResize wobj seat serial edges = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 20
     put seat
@@ -338,16 +338,16 @@ wlShellSurfaceResize ifac st seat serial edges = runByteString $ do
     put edges
 
 --  Req: make the surface a toplevel surface opc:3
-wlShellSurfaceSetToplevel :: Text -> ClState -> BS.ByteString
-wlShellSurfaceSetToplevel ifac st  = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceSetToplevel :: WObj -> BS.ByteString
+wlShellSurfaceSetToplevel wobj  = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host 8
 
 --  Req: make the surface a transient surface opc:4
-wlShellSurfaceSetTransient :: Text -> ClState -> WObj -> WInt -> WInt -> WUint -> BS.ByteString
-wlShellSurfaceSetTransient ifac st parent x y flags = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceSetTransient :: WObj -> WObj -> WInt -> WInt -> WUint -> BS.ByteString
+wlShellSurfaceSetTransient wobj parent x y flags = runByteString $ do
+    put wobj
     put $ WOpc 4
     putWord16host 24
     put parent
@@ -356,9 +356,9 @@ wlShellSurfaceSetTransient ifac st parent x y flags = runByteString $ do
     put flags
 
 --  Req: make the surface a fullscreen surface opc:5
-wlShellSurfaceSetFullscreen :: Text -> ClState -> WUint -> WUint -> WObj -> BS.ByteString
-wlShellSurfaceSetFullscreen ifac st method framerate output = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceSetFullscreen :: WObj -> WUint -> WUint -> WObj -> BS.ByteString
+wlShellSurfaceSetFullscreen wobj method framerate output = runByteString $ do
+    put wobj
     put $ WOpc 5
     putWord16host 20
     put method
@@ -366,9 +366,9 @@ wlShellSurfaceSetFullscreen ifac st method framerate output = runByteString $ do
     put output
 
 --  Req: make the surface a popup surface opc:6
-wlShellSurfaceSetPopup :: Text -> ClState -> WObj -> WUint -> WObj -> WInt -> WInt -> WUint -> BS.ByteString
-wlShellSurfaceSetPopup ifac st seat serial parent x y flags = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceSetPopup :: WObj -> WObj -> WUint -> WObj -> WInt -> WInt -> WUint -> BS.ByteString
+wlShellSurfaceSetPopup wobj seat serial parent x y flags = runByteString $ do
+    put wobj
     put $ WOpc 6
     putWord16host 32
     put seat
@@ -379,26 +379,26 @@ wlShellSurfaceSetPopup ifac st seat serial parent x y flags = runByteString $ do
     put flags
 
 --  Req: make the surface a maximized surface opc:7
-wlShellSurfaceSetMaximized :: Text -> ClState -> WObj -> BS.ByteString
-wlShellSurfaceSetMaximized ifac st output = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceSetMaximized :: WObj -> WObj -> BS.ByteString
+wlShellSurfaceSetMaximized wobj output = runByteString $ do
+    put wobj
     put $ WOpc 7
     putWord16host 12
     put output
 
 --  Req: set surface title opc:8
-wlShellSurfaceSetTitle :: Text -> ClState -> WString -> BS.ByteString
-wlShellSurfaceSetTitle ifac st title = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceSetTitle :: WObj -> WString -> BS.ByteString
+wlShellSurfaceSetTitle wobj title = runByteString $ do
+    put wobj
     put $ WOpc 8
     putWord16host  $ fromIntegral len
     put title
   where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: set surface class opc:9
-wlShellSurfaceSetClass :: Text -> ClState -> WString -> BS.ByteString
-wlShellSurfaceSetClass ifac st xclass = runByteString $ do
-    putTObjId ifac st
+wlShellSurfaceSetClass :: WObj -> WString -> BS.ByteString
+wlShellSurfaceSetClass wobj xclass = runByteString $ do
+    put wobj
     put $ WOpc 9
     putWord16host  $ fromIntegral len
     put xclass
@@ -407,16 +407,16 @@ wlShellSurfaceSetClass ifac st xclass = runByteString $ do
 --  Interface: WlSurface - an onscreen surface
 
 --  Req: delete surface opc:0
-wlSurfaceDestroy :: Text -> ClState -> BS.ByteString
-wlSurfaceDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+wlSurfaceDestroy :: WObj -> BS.ByteString
+wlSurfaceDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: set the surface contents opc:1
-wlSurfaceAttach :: Text -> ClState -> WObj -> WInt -> WInt -> BS.ByteString
-wlSurfaceAttach ifac st buffer x y = runByteString $ do
-    putTObjId ifac st
+wlSurfaceAttach :: WObj -> WObj -> WInt -> WInt -> BS.ByteString
+wlSurfaceAttach wobj buffer x y = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 20
     put buffer
@@ -424,9 +424,9 @@ wlSurfaceAttach ifac st buffer x y = runByteString $ do
     put y
 
 --  Req: mark part of the surface damaged opc:2
-wlSurfaceDamage :: Text -> ClState -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
-wlSurfaceDamage ifac st x y width height = runByteString $ do
-    putTObjId ifac st
+wlSurfaceDamage :: WObj -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
+wlSurfaceDamage wobj x y width height = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 24
     put x
@@ -435,56 +435,56 @@ wlSurfaceDamage ifac st x y width height = runByteString $ do
     put height
 
 --  Req: request a frame throttling hint opc:3
-wlSurfaceFrame :: Text -> ClState -> WNewId -> BS.ByteString
-wlSurfaceFrame ifac st callback = runByteString $ do
-    putTObjId ifac st
+wlSurfaceFrame :: WObj -> WNewId -> BS.ByteString
+wlSurfaceFrame wobj callback = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host 12
     put callback
 
 --  Req: set opaque region opc:4
-wlSurfaceSetOpaqueRegion :: Text -> ClState -> WObj -> BS.ByteString
-wlSurfaceSetOpaqueRegion ifac st region = runByteString $ do
-    putTObjId ifac st
+wlSurfaceSetOpaqueRegion :: WObj -> WObj -> BS.ByteString
+wlSurfaceSetOpaqueRegion wobj region = runByteString $ do
+    put wobj
     put $ WOpc 4
     putWord16host 12
     put region
 
 --  Req: set input region opc:5
-wlSurfaceSetInputRegion :: Text -> ClState -> WObj -> BS.ByteString
-wlSurfaceSetInputRegion ifac st region = runByteString $ do
-    putTObjId ifac st
+wlSurfaceSetInputRegion :: WObj -> WObj -> BS.ByteString
+wlSurfaceSetInputRegion wobj region = runByteString $ do
+    put wobj
     put $ WOpc 5
     putWord16host 12
     put region
 
 --  Req: commit pending surface state opc:6
-wlSurfaceCommit :: Text -> ClState -> BS.ByteString
-wlSurfaceCommit ifac st  = runByteString $ do
-    putTObjId ifac st
+wlSurfaceCommit :: WObj -> BS.ByteString
+wlSurfaceCommit wobj  = runByteString $ do
+    put wobj
     put $ WOpc 6
     putWord16host 8
 
 --  Req: sets the buffer transformation opc:7
-wlSurfaceSetBufferTransform :: Text -> ClState -> WInt -> BS.ByteString
-wlSurfaceSetBufferTransform ifac st transform = runByteString $ do
-    putTObjId ifac st
+wlSurfaceSetBufferTransform :: WObj -> WInt -> BS.ByteString
+wlSurfaceSetBufferTransform wobj transform = runByteString $ do
+    put wobj
     put $ WOpc 7
     putWord16host 12
     put transform
 
 --  Req: sets the buffer scaling factor opc:8
-wlSurfaceSetBufferScale :: Text -> ClState -> WInt -> BS.ByteString
-wlSurfaceSetBufferScale ifac st scale = runByteString $ do
-    putTObjId ifac st
+wlSurfaceSetBufferScale :: WObj -> WInt -> BS.ByteString
+wlSurfaceSetBufferScale wobj scale = runByteString $ do
+    put wobj
     put $ WOpc 8
     putWord16host 12
     put scale
 
 --  Req: mark part of the surface damaged using buffer coordinates opc:9
-wlSurfaceDamageBuffer :: Text -> ClState -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
-wlSurfaceDamageBuffer ifac st x y width height = runByteString $ do
-    putTObjId ifac st
+wlSurfaceDamageBuffer :: WObj -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
+wlSurfaceDamageBuffer wobj x y width height = runByteString $ do
+    put wobj
     put $ WOpc 9
     putWord16host 24
     put x
@@ -495,42 +495,42 @@ wlSurfaceDamageBuffer ifac st x y width height = runByteString $ do
 --  Interface: WlSeat - group of input devices
 
 --  Req: return pointer object opc:0
-wlSeatGetPointer :: Text -> ClState -> WNewId -> BS.ByteString
-wlSeatGetPointer ifac st xid = runByteString $ do
-    putTObjId ifac st
+wlSeatGetPointer :: WObj -> WNewId -> BS.ByteString
+wlSeatGetPointer wobj xid = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 12
     put xid
 
 --  Req: return keyboard object opc:1
-wlSeatGetKeyboard :: Text -> ClState -> WNewId -> BS.ByteString
-wlSeatGetKeyboard ifac st xid = runByteString $ do
-    putTObjId ifac st
+wlSeatGetKeyboard :: WObj -> WNewId -> BS.ByteString
+wlSeatGetKeyboard wobj xid = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 12
     put xid
 
 --  Req: return touch object opc:2
-wlSeatGetTouch :: Text -> ClState -> WNewId -> BS.ByteString
-wlSeatGetTouch ifac st xid = runByteString $ do
-    putTObjId ifac st
+wlSeatGetTouch :: WObj -> WNewId -> BS.ByteString
+wlSeatGetTouch wobj xid = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 12
     put xid
 
 --  Req: release the seat object opc:3
-wlSeatRelease :: Text -> ClState -> BS.ByteString
-wlSeatRelease ifac st  = runByteString $ do
-    putTObjId ifac st
+wlSeatRelease :: WObj -> BS.ByteString
+wlSeatRelease wobj  = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host 8
 
 --  Interface: WlPointer - pointer input device
 
 --  Req: set the pointer surface opc:0
-wlPointerSetCursor :: Text -> ClState -> WUint -> WObj -> WInt -> WInt -> BS.ByteString
-wlPointerSetCursor ifac st serial surface hotspotX hotspotY = runByteString $ do
-    putTObjId ifac st
+wlPointerSetCursor :: WObj -> WUint -> WObj -> WInt -> WInt -> BS.ByteString
+wlPointerSetCursor wobj serial surface hotspotX hotspotY = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 24
     put serial
@@ -539,52 +539,52 @@ wlPointerSetCursor ifac st serial surface hotspotX hotspotY = runByteString $ do
     put hotspotY
 
 --  Req: release the pointer object opc:1
-wlPointerRelease :: Text -> ClState -> BS.ByteString
-wlPointerRelease ifac st  = runByteString $ do
-    putTObjId ifac st
+wlPointerRelease :: WObj -> BS.ByteString
+wlPointerRelease wobj  = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 8
 
 --  Interface: WlKeyboard - keyboard input device
 
 --  Req: release the keyboard object opc:0
-wlKeyboardRelease :: Text -> ClState -> BS.ByteString
-wlKeyboardRelease ifac st  = runByteString $ do
-    putTObjId ifac st
+wlKeyboardRelease :: WObj -> BS.ByteString
+wlKeyboardRelease wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Interface: WlTouch - touchscreen input device
 
 --  Req: release the touch object opc:0
-wlTouchRelease :: Text -> ClState -> BS.ByteString
-wlTouchRelease ifac st  = runByteString $ do
-    putTObjId ifac st
+wlTouchRelease :: WObj -> BS.ByteString
+wlTouchRelease wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Interface: WlOutput - compositor output region
 
 --  Req: release the output object opc:0
-wlOutputRelease :: Text -> ClState -> BS.ByteString
-wlOutputRelease ifac st  = runByteString $ do
-    putTObjId ifac st
+wlOutputRelease :: WObj -> BS.ByteString
+wlOutputRelease wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Interface: WlRegion - region interface
 
 --  Req: destroy region opc:0
-wlRegionDestroy :: Text -> ClState -> BS.ByteString
-wlRegionDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+wlRegionDestroy :: WObj -> BS.ByteString
+wlRegionDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: add rectangle to region opc:1
-wlRegionAdd :: Text -> ClState -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
-wlRegionAdd ifac st x y width height = runByteString $ do
-    putTObjId ifac st
+wlRegionAdd :: WObj -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
+wlRegionAdd wobj x y width height = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 24
     put x
@@ -593,9 +593,9 @@ wlRegionAdd ifac st x y width height = runByteString $ do
     put height
 
 --  Req: subtract rectangle from region opc:2
-wlRegionSubtract :: Text -> ClState -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
-wlRegionSubtract ifac st x y width height = runByteString $ do
-    putTObjId ifac st
+wlRegionSubtract :: WObj -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
+wlRegionSubtract wobj x y width height = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 24
     put x
@@ -606,16 +606,16 @@ wlRegionSubtract ifac st x y width height = runByteString $ do
 --  Interface: WlSubcompositor - sub-surface compositing
 
 --  Req: unbind from the subcompositor interface opc:0
-wlSubcompositorDestroy :: Text -> ClState -> BS.ByteString
-wlSubcompositorDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+wlSubcompositorDestroy :: WObj -> BS.ByteString
+wlSubcompositorDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: give a surface the role sub-surface opc:1
-wlSubcompositorGetSubsurface :: Text -> ClState -> WNewId -> WObj -> WObj -> BS.ByteString
-wlSubcompositorGetSubsurface ifac st xid surface parent = runByteString $ do
-    putTObjId ifac st
+wlSubcompositorGetSubsurface :: WObj -> WNewId -> WObj -> WObj -> BS.ByteString
+wlSubcompositorGetSubsurface wobj xid surface parent = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 20
     put xid
@@ -625,81 +625,81 @@ wlSubcompositorGetSubsurface ifac st xid surface parent = runByteString $ do
 --  Interface: WlSubsurface - sub-surface interface to a wl_surface
 
 --  Req: remove sub-surface interface opc:0
-wlSubsurfaceDestroy :: Text -> ClState -> BS.ByteString
-wlSubsurfaceDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+wlSubsurfaceDestroy :: WObj -> BS.ByteString
+wlSubsurfaceDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: reposition the sub-surface opc:1
-wlSubsurfaceSetPosition :: Text -> ClState -> WInt -> WInt -> BS.ByteString
-wlSubsurfaceSetPosition ifac st x y = runByteString $ do
-    putTObjId ifac st
+wlSubsurfaceSetPosition :: WObj -> WInt -> WInt -> BS.ByteString
+wlSubsurfaceSetPosition wobj x y = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 16
     put x
     put y
 
 --  Req: restack the sub-surface opc:2
-wlSubsurfacePlaceAbove :: Text -> ClState -> WObj -> BS.ByteString
-wlSubsurfacePlaceAbove ifac st sibling = runByteString $ do
-    putTObjId ifac st
+wlSubsurfacePlaceAbove :: WObj -> WObj -> BS.ByteString
+wlSubsurfacePlaceAbove wobj sibling = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 12
     put sibling
 
 --  Req: restack the sub-surface opc:3
-wlSubsurfacePlaceBelow :: Text -> ClState -> WObj -> BS.ByteString
-wlSubsurfacePlaceBelow ifac st sibling = runByteString $ do
-    putTObjId ifac st
+wlSubsurfacePlaceBelow :: WObj -> WObj -> BS.ByteString
+wlSubsurfacePlaceBelow wobj sibling = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host 12
     put sibling
 
 --  Req: set sub-surface to synchronized mode opc:4
-wlSubsurfaceSetSync :: Text -> ClState -> BS.ByteString
-wlSubsurfaceSetSync ifac st  = runByteString $ do
-    putTObjId ifac st
+wlSubsurfaceSetSync :: WObj -> BS.ByteString
+wlSubsurfaceSetSync wobj  = runByteString $ do
+    put wobj
     put $ WOpc 4
     putWord16host 8
 
 --  Req: set sub-surface to desynchronized mode opc:5
-wlSubsurfaceSetDesync :: Text -> ClState -> BS.ByteString
-wlSubsurfaceSetDesync ifac st  = runByteString $ do
-    putTObjId ifac st
+wlSubsurfaceSetDesync :: WObj -> BS.ByteString
+wlSubsurfaceSetDesync wobj  = runByteString $ do
+    put wobj
     put $ WOpc 5
     putWord16host 8
 
 --  Interface: XdgWmBase - create desktop-style surfaces
 
 --  Req: destroy xdg_wm_base opc:0
-xdgWmBaseDestroy :: Text -> ClState -> BS.ByteString
-xdgWmBaseDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgWmBaseDestroy :: WObj -> BS.ByteString
+xdgWmBaseDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: create a positioner object opc:1
-xdgWmBaseCreatePositioner :: Text -> ClState -> WNewId -> BS.ByteString
-xdgWmBaseCreatePositioner ifac st xid = runByteString $ do
-    putTObjId ifac st
+xdgWmBaseCreatePositioner :: WObj -> WNewId -> BS.ByteString
+xdgWmBaseCreatePositioner wobj xid = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 12
     put xid
 
 --  Req: create a shell surface from a surface opc:2
-xdgWmBaseGetXdgSurface :: Text -> ClState -> WNewId -> WObj -> BS.ByteString
-xdgWmBaseGetXdgSurface ifac st xid surface = runByteString $ do
-    putTObjId ifac st
+xdgWmBaseGetXdgSurface :: WObj -> WNewId -> WObj -> BS.ByteString
+xdgWmBaseGetXdgSurface wobj xid surface = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 16
     put xid
     put surface
 
 --  Req: respond to a ping event opc:3
-xdgWmBasePong :: Text -> ClState -> WUint -> BS.ByteString
-xdgWmBasePong ifac st serial = runByteString $ do
-    putTObjId ifac st
+xdgWmBasePong :: WObj -> WUint -> BS.ByteString
+xdgWmBasePong wobj serial = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host 12
     put serial
@@ -707,25 +707,25 @@ xdgWmBasePong ifac st serial = runByteString $ do
 --  Interface: XdgPositioner - child surface positioner
 
 --  Req: destroy the xdg_positioner object opc:0
-xdgPositionerDestroy :: Text -> ClState -> BS.ByteString
-xdgPositionerDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgPositionerDestroy :: WObj -> BS.ByteString
+xdgPositionerDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: set the size of the to-be positioned rectangle opc:1
-xdgPositionerSetSize :: Text -> ClState -> WInt -> WInt -> BS.ByteString
-xdgPositionerSetSize ifac st width height = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetSize :: WObj -> WInt -> WInt -> BS.ByteString
+xdgPositionerSetSize wobj width height = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 16
     put width
     put height
 
 --  Req: set the anchor rectangle within the parent surface opc:2
-xdgPositionerSetAnchorRect :: Text -> ClState -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
-xdgPositionerSetAnchorRect ifac st x y width height = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetAnchorRect :: WObj -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
+xdgPositionerSetAnchorRect wobj x y width height = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 24
     put x
@@ -734,58 +734,58 @@ xdgPositionerSetAnchorRect ifac st x y width height = runByteString $ do
     put height
 
 --  Req: set anchor rectangle anchor opc:3
-xdgPositionerSetAnchor :: Text -> ClState -> WUint -> BS.ByteString
-xdgPositionerSetAnchor ifac st anchor = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetAnchor :: WObj -> WUint -> BS.ByteString
+xdgPositionerSetAnchor wobj anchor = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host 12
     put anchor
 
 --  Req: set child surface gravity opc:4
-xdgPositionerSetGravity :: Text -> ClState -> WUint -> BS.ByteString
-xdgPositionerSetGravity ifac st gravity = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetGravity :: WObj -> WUint -> BS.ByteString
+xdgPositionerSetGravity wobj gravity = runByteString $ do
+    put wobj
     put $ WOpc 4
     putWord16host 12
     put gravity
 
 --  Req: set the adjustment to be done when constrained opc:5
-xdgPositionerSetConstraintAdjustment :: Text -> ClState -> WUint -> BS.ByteString
-xdgPositionerSetConstraintAdjustment ifac st constraintAdjustment = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetConstraintAdjustment :: WObj -> WUint -> BS.ByteString
+xdgPositionerSetConstraintAdjustment wobj constraintAdjustment = runByteString $ do
+    put wobj
     put $ WOpc 5
     putWord16host 12
     put constraintAdjustment
 
 --  Req: set surface position offset opc:6
-xdgPositionerSetOffset :: Text -> ClState -> WInt -> WInt -> BS.ByteString
-xdgPositionerSetOffset ifac st x y = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetOffset :: WObj -> WInt -> WInt -> BS.ByteString
+xdgPositionerSetOffset wobj x y = runByteString $ do
+    put wobj
     put $ WOpc 6
     putWord16host 16
     put x
     put y
 
 --  Req: continuously reconstrain the surface opc:7
-xdgPositionerSetReactive :: Text -> ClState -> BS.ByteString
-xdgPositionerSetReactive ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetReactive :: WObj -> BS.ByteString
+xdgPositionerSetReactive wobj  = runByteString $ do
+    put wobj
     put $ WOpc 7
     putWord16host 8
 
 --  Req:  opc:8
-xdgPositionerSetParentSize :: Text -> ClState -> WInt -> WInt -> BS.ByteString
-xdgPositionerSetParentSize ifac st parentWidth parentHeight = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetParentSize :: WObj -> WInt -> WInt -> BS.ByteString
+xdgPositionerSetParentSize wobj parentWidth parentHeight = runByteString $ do
+    put wobj
     put $ WOpc 8
     putWord16host 16
     put parentWidth
     put parentHeight
 
 --  Req: set parent configure this is a response to opc:9
-xdgPositionerSetParentConfigure :: Text -> ClState -> WUint -> BS.ByteString
-xdgPositionerSetParentConfigure ifac st serial = runByteString $ do
-    putTObjId ifac st
+xdgPositionerSetParentConfigure :: WObj -> WUint -> BS.ByteString
+xdgPositionerSetParentConfigure wobj serial = runByteString $ do
+    put wobj
     put $ WOpc 9
     putWord16host 12
     put serial
@@ -793,24 +793,24 @@ xdgPositionerSetParentConfigure ifac st serial = runByteString $ do
 --  Interface: XdgSurface - desktop user interface surface base interface
 
 --  Req: destroy the xdg_surface opc:0
-xdgSurfaceDestroy :: Text -> ClState -> BS.ByteString
-xdgSurfaceDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgSurfaceDestroy :: WObj -> BS.ByteString
+xdgSurfaceDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: assign the xdg_toplevel surface role opc:1
-xdgSurfaceGetToplevel :: Text -> ClState -> WNewId -> BS.ByteString
-xdgSurfaceGetToplevel ifac st xid = runByteString $ do
-    putTObjId ifac st
+xdgSurfaceGetToplevel :: WObj -> WNewId -> BS.ByteString
+xdgSurfaceGetToplevel wobj xid = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 12
     put xid
 
 --  Req: assign the xdg_popup surface role opc:2
-xdgSurfaceGetPopup :: Text -> ClState -> WNewId -> WObj -> WObj -> BS.ByteString
-xdgSurfaceGetPopup ifac st xid parent positioner = runByteString $ do
-    putTObjId ifac st
+xdgSurfaceGetPopup :: WObj -> WNewId -> WObj -> WObj -> BS.ByteString
+xdgSurfaceGetPopup wobj xid parent positioner = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 20
     put xid
@@ -818,9 +818,9 @@ xdgSurfaceGetPopup ifac st xid parent positioner = runByteString $ do
     put positioner
 
 --  Req: set the new window geometry opc:3
-xdgSurfaceSetWindowGeometry :: Text -> ClState -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
-xdgSurfaceSetWindowGeometry ifac st x y width height = runByteString $ do
-    putTObjId ifac st
+xdgSurfaceSetWindowGeometry :: WObj -> WInt -> WInt -> WInt -> WInt -> BS.ByteString
+xdgSurfaceSetWindowGeometry wobj x y width height = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host 24
     put x
@@ -829,9 +829,9 @@ xdgSurfaceSetWindowGeometry ifac st x y width height = runByteString $ do
     put height
 
 --  Req: ack a configure event opc:4
-xdgSurfaceAckConfigure :: Text -> ClState -> WUint -> BS.ByteString
-xdgSurfaceAckConfigure ifac st serial = runByteString $ do
-    putTObjId ifac st
+xdgSurfaceAckConfigure :: WObj -> WUint -> BS.ByteString
+xdgSurfaceAckConfigure wobj serial = runByteString $ do
+    put wobj
     put $ WOpc 4
     putWord16host 12
     put serial
@@ -839,42 +839,42 @@ xdgSurfaceAckConfigure ifac st serial = runByteString $ do
 --  Interface: XdgToplevel - toplevel surface
 
 --  Req: destroy the xdg_toplevel opc:0
-xdgToplevelDestroy :: Text -> ClState -> BS.ByteString
-xdgToplevelDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgToplevelDestroy :: WObj -> BS.ByteString
+xdgToplevelDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: set the parent of this surface opc:1
-xdgToplevelSetParent :: Text -> ClState -> WObj -> BS.ByteString
-xdgToplevelSetParent ifac st parent = runByteString $ do
-    putTObjId ifac st
+xdgToplevelSetParent :: WObj -> WObj -> BS.ByteString
+xdgToplevelSetParent wobj parent = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 12
     put parent
 
 --  Req: set surface title opc:2
-xdgToplevelSetTitle :: Text -> ClState -> WString -> BS.ByteString
-xdgToplevelSetTitle ifac st title = runByteString $ do
-    putTObjId ifac st
+xdgToplevelSetTitle :: WObj -> WString -> BS.ByteString
+xdgToplevelSetTitle wobj title = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host  $ fromIntegral len
     put title
   where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: set application ID opc:3
-xdgToplevelSetAppId :: Text -> ClState -> WString -> BS.ByteString
-xdgToplevelSetAppId ifac st appId = runByteString $ do
-    putTObjId ifac st
+xdgToplevelSetAppId :: WObj -> WString -> BS.ByteString
+xdgToplevelSetAppId wobj appId = runByteString $ do
+    put wobj
     put $ WOpc 3
     putWord16host  $ fromIntegral len
     put appId
   where len = 8 + sum (calcWStringLength <$> [appId])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: show the window menu opc:4
-xdgToplevelShowWindowMenu :: Text -> ClState -> WObj -> WUint -> WInt -> WInt -> BS.ByteString
-xdgToplevelShowWindowMenu ifac st seat serial x y = runByteString $ do
-    putTObjId ifac st
+xdgToplevelShowWindowMenu :: WObj -> WObj -> WUint -> WInt -> WInt -> BS.ByteString
+xdgToplevelShowWindowMenu wobj seat serial x y = runByteString $ do
+    put wobj
     put $ WOpc 4
     putWord16host 24
     put seat
@@ -883,18 +883,18 @@ xdgToplevelShowWindowMenu ifac st seat serial x y = runByteString $ do
     put y
 
 --  Req: start an interactive move opc:5
-xdgToplevelMove :: Text -> ClState -> WObj -> WUint -> BS.ByteString
-xdgToplevelMove ifac st seat serial = runByteString $ do
-    putTObjId ifac st
+xdgToplevelMove :: WObj -> WObj -> WUint -> BS.ByteString
+xdgToplevelMove wobj seat serial = runByteString $ do
+    put wobj
     put $ WOpc 5
     putWord16host 16
     put seat
     put serial
 
 --  Req: start an interactive resize opc:6
-xdgToplevelResize :: Text -> ClState -> WObj -> WUint -> WUint -> BS.ByteString
-xdgToplevelResize ifac st seat serial edges = runByteString $ do
-    putTObjId ifac st
+xdgToplevelResize :: WObj -> WObj -> WUint -> WUint -> BS.ByteString
+xdgToplevelResize wobj seat serial edges = runByteString $ do
+    put wobj
     put $ WOpc 6
     putWord16host 20
     put seat
@@ -902,81 +902,81 @@ xdgToplevelResize ifac st seat serial edges = runByteString $ do
     put edges
 
 --  Req: set the maximum size opc:7
-xdgToplevelSetMaxSize :: Text -> ClState -> WInt -> WInt -> BS.ByteString
-xdgToplevelSetMaxSize ifac st width height = runByteString $ do
-    putTObjId ifac st
+xdgToplevelSetMaxSize :: WObj -> WInt -> WInt -> BS.ByteString
+xdgToplevelSetMaxSize wobj width height = runByteString $ do
+    put wobj
     put $ WOpc 7
     putWord16host 16
     put width
     put height
 
 --  Req: set the minimum size opc:8
-xdgToplevelSetMinSize :: Text -> ClState -> WInt -> WInt -> BS.ByteString
-xdgToplevelSetMinSize ifac st width height = runByteString $ do
-    putTObjId ifac st
+xdgToplevelSetMinSize :: WObj -> WInt -> WInt -> BS.ByteString
+xdgToplevelSetMinSize wobj width height = runByteString $ do
+    put wobj
     put $ WOpc 8
     putWord16host 16
     put width
     put height
 
 --  Req: maximize the window opc:9
-xdgToplevelSetMaximized :: Text -> ClState -> BS.ByteString
-xdgToplevelSetMaximized ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgToplevelSetMaximized :: WObj -> BS.ByteString
+xdgToplevelSetMaximized wobj  = runByteString $ do
+    put wobj
     put $ WOpc 9
     putWord16host 8
 
 --  Req: unmaximize the window opc:10
-xdgToplevelUnsetMaximized :: Text -> ClState -> BS.ByteString
-xdgToplevelUnsetMaximized ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgToplevelUnsetMaximized :: WObj -> BS.ByteString
+xdgToplevelUnsetMaximized wobj  = runByteString $ do
+    put wobj
     put $ WOpc 10
     putWord16host 8
 
 --  Req: set the window as fullscreen on an output opc:11
-xdgToplevelSetFullscreen :: Text -> ClState -> WObj -> BS.ByteString
-xdgToplevelSetFullscreen ifac st output = runByteString $ do
-    putTObjId ifac st
+xdgToplevelSetFullscreen :: WObj -> WObj -> BS.ByteString
+xdgToplevelSetFullscreen wobj output = runByteString $ do
+    put wobj
     put $ WOpc 11
     putWord16host 12
     put output
 
 --  Req: unset the window as fullscreen opc:12
-xdgToplevelUnsetFullscreen :: Text -> ClState -> BS.ByteString
-xdgToplevelUnsetFullscreen ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgToplevelUnsetFullscreen :: WObj -> BS.ByteString
+xdgToplevelUnsetFullscreen wobj  = runByteString $ do
+    put wobj
     put $ WOpc 12
     putWord16host 8
 
 --  Req: set the window as minimized opc:13
-xdgToplevelSetMinimized :: Text -> ClState -> BS.ByteString
-xdgToplevelSetMinimized ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgToplevelSetMinimized :: WObj -> BS.ByteString
+xdgToplevelSetMinimized wobj  = runByteString $ do
+    put wobj
     put $ WOpc 13
     putWord16host 8
 
 --  Interface: XdgPopup - short-lived, popup surfaces for menus
 
 --  Req: remove xdg_popup interface opc:0
-xdgPopupDestroy :: Text -> ClState -> BS.ByteString
-xdgPopupDestroy ifac st  = runByteString $ do
-    putTObjId ifac st
+xdgPopupDestroy :: WObj -> BS.ByteString
+xdgPopupDestroy wobj  = runByteString $ do
+    put wobj
     put $ WOpc 0
     putWord16host 8
 
 --  Req: make the popup take an explicit grab opc:1
-xdgPopupGrab :: Text -> ClState -> WObj -> WUint -> BS.ByteString
-xdgPopupGrab ifac st seat serial = runByteString $ do
-    putTObjId ifac st
+xdgPopupGrab :: WObj -> WObj -> WUint -> BS.ByteString
+xdgPopupGrab wobj seat serial = runByteString $ do
+    put wobj
     put $ WOpc 1
     putWord16host 16
     put seat
     put serial
 
 --  Req: recalculate the popup's location opc:2
-xdgPopupReposition :: Text -> ClState -> WObj -> WUint -> BS.ByteString
-xdgPopupReposition ifac st positioner token = runByteString $ do
-    putTObjId ifac st
+xdgPopupReposition :: WObj -> WObj -> WUint -> BS.ByteString
+xdgPopupReposition wobj positioner token = runByteString $ do
+    put wobj
     put $ WOpc 2
     putWord16host 16
     put positioner
@@ -1791,14 +1791,4 @@ dispatchEvent msg = do
               _ -> error (T.unpack ifName <> "Unknown op-code:" <> show wopc)
         _ ->  error ("dispatchEvent: No case for interface object " <> T.unpack ifName)
 
--- Support Functions
-
--- Get an WObj from the interface text name
-getObjectId :: Text -> ClState -> WObj
-getObjectId txt st =
-    fst $ fromMaybe (0, T.empty) (find ((==) txt . snd ) (clActiveIfaces st))
-
--- Put a text object name as WObj on a ByteStream
-putTObjId :: Text -> ClState -> Put
-putTObjId txt st = putWord32host $ fromIntegral $ getObjectId txt st
 

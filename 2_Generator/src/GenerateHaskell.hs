@@ -34,9 +34,6 @@ genProtocol prot = genModuleHeader
     <> genSetListeners interfaces <> bnl
     <> genLine "-- Function dispatchEvent" <> bnl
     <> genDispatchEvent interfaces
-    <> genLine "-- Support Functions" <> bnl
-    <> genSupportFunctions
-
     <> bnl
   where
     interfaces = protInterfaces prot
@@ -96,8 +93,8 @@ genRequests reqs = mconcat $ map genRequest reqs
 -- Generate a single request
 --
 -- > wlDisplaySync :: Text -> ClState -> WNewId -> BS.ByteString
--- > wlDisplaySync ifac st callback  = runByteString $ do
--- >     putTObjId ifac st
+-- > wlDisplaySync wobj callback  = runByteString $ do
+-- >     put wobj
 -- >     put $ WOpc 0
 -- >     putWord16host 12
 -- >     put callback
@@ -107,15 +104,15 @@ genRequest req = funtit ("Req: " <> descrSummary (reqDescr req) <> " opc:" <> ts
                  fromText (reqName req) <> genReqBody req
 
 genReqType :: WlRequest -> Builder
-genReqType req = genLine $ " :: " <> "Text -> ClState -> " <> mconcat types
+genReqType req = genLine $ " :: " <> "WObj -> " <> mconcat types
   where
     types = intersperse " -> " (map argType (reqArgs req) <> ["BS.ByteString"])
 
 genReqBody :: WlRequest -> Builder
-genReqBody req = fromText (" ifac st " <> args  <> " = ")
+genReqBody req = fromText (" wobj " <> args  <> " = ")
                <> genReqDoHeader req
                <> genReqDoArgs req
-               <> genReqDoWhere req   -- TODO only when there are args
+               <> genReqDoWhere req
                <> bnl
   where
     args = mconcat $ intersperse " "  (map argName (reqArgs req))
@@ -123,7 +120,7 @@ genReqBody req = fromText (" ifac st " <> args  <> " = ")
 
 genReqDoHeader :: WlRequest -> Builder
 genReqDoHeader req = genLine "runByteString $ do" <>
-      indent 4 <> genLine "putTObjId ifac st" <>
+      indent 4 <> genLine "put wobj"  <>
       indent 4 <> genLine ("put $ WOpc " <> tshow (reqOpc req)) <>
       indent 4 <> fromText "putWord16host " <>
       if needsWhere req
@@ -402,19 +399,6 @@ genDispatchEventEnd :: Builder
 genDispatchEventEnd =
   indent 8 <> genLine "_ ->  error (\"dispatchEvent: No case for interface object \" <> T.unpack ifName)"
       <> bnl
-
-
-genSupportFunctions :: Builder
-genSupportFunctions =
-    genLine "-- Get an WObj from the interface text name" <>
-    genLine "getObjectId :: Text -> ClState -> WObj" <>
-    genLine "getObjectId txt st =" <>
-    genLine "    fst $ fromMaybe (0, T.empty) (find ((==) txt . snd ) (clActiveIfaces st))" <>
-    bnl <>
-    genLine "-- Put a text object name as WObj on a ByteStream" <>
-    genLine "putTObjId :: Text -> ClState -> Put" <>
-    genLine "putTObjId txt st = putWord32host $ fromIntegral $ getObjectId txt st"
-
 
 -- --------------------------------------------------------------------
 -- Helper Functions to Generate Names

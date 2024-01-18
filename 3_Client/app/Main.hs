@@ -65,7 +65,7 @@ myRegistryListener = WlRegistryListener
   -- wlRegistryGlobal :: ClState ->  WUint -> WString -> WUint -> IO ()
 myRegistryGlobal :: TwlRegistryGlobal
 myRegistryGlobal name interface version = do
-    ST.liftIO $ putStrLn $ "wlRegistryGlobal: "
+    ST.liftIO $ putStrLn $ "myRegistryGlobal: "
       <> show name
       <> " " <> show name
       <> " " <> show interface
@@ -78,6 +78,10 @@ myRegistryGlobal name interface version = do
 
       WString "wl_shm" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER wl_shm"
+        bindToInterface (fromIntegral name) interface
+
+      WString "xdg_wm_base" -> do
+        ST.liftIO $ putStrLn "GOTCHA REGISTER xdg_wm_base"
         bindToInterface (fromIntegral name) interface
 
       _ -> pure()

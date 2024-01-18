@@ -1,1 +1,1 @@
-cp Wire.hs ../Client/src/Wire.hs
+cp Wire.hs ../3_Client/src/Wire.hs

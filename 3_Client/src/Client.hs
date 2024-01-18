@@ -16,7 +16,7 @@ import qualified Data.ByteString            as BS
 import Control.Monad.State.Strict
 
 import Data.Text (Text)
-import ClientSupport (createNewId, addRequest)
+import ClientSupport
 -- import qualified Data.Text as T
 
 {-
@@ -28,37 +28,28 @@ import ClientSupport (createNewId, addRequest)
 
 bindToInterface :: WInt -> WString -> ClMonad ()
 bindToInterface name (WString txt) = do
-    st <- get
-    let newObj = 1 + clMaxUsedIface st
-        newActives  = (newObj, txt) : clActiveIfaces st
-        reqs = wlRegistryBind cWlDisplay st (fromIntegral name) (fromIntegral newObj) : clReqs st
-    put $ st { clMaxUsedIface = newObj, clActiveIfaces = newActives, clReqs = reqs}
+    wobj <- getObjectId cWlDisplay
+    newId <- createNewId txt
+    addRequest $ wlRegistryBind  wobj (fromIntegral name) (fromIntegral newId)
+
+
+--    let newObj = 1 + clMaxUsedIface st
+--        newActives  = (newObj, txt) : clActiveIfaces st
+--        reqs = wlRegistryBind cWlDisplay st (fromIntegral name) (fromIntegral newObj) : clReqs st
+--    put $ st { clMaxUsedIface = newObj, clActiveIfaces = newActives, clReqs = reqs}
 
 
 displayGetRegistry :: ClMonad ()
 displayGetRegistry = do
-    st <- get
+    wobj <- getObjectId cWlDisplay
     newId <- createNewId cWlRegistry
-    let req = wlDisplayGetRegistry cWlDisplay st newId
-    addRequest req
-
-{-
-displayGetRegistry :: ClMonad ()
-displayGetRegistry = do
-    st <- get
-    let newObj = 1 + clMaxUsedIface st
-        newActives  = (newObj, cWlRegistry) : clActiveIfaces st
-        reqs = wlDisplayGetRegistry cWlDisplay st (fromIntegral newObj) : clReqs st
-    put $ st { clMaxUsedIface = newObj, clActiveIfaces = newActives, clReqs = reqs}
--}
+    addRequest $  wlDisplayGetRegistry wobj newId
 
 displaySync :: ClMonad ()
 displaySync = do
-    st <- get
-    let newObj = 1 + clMaxUsedIface st
-        newActives  = (newObj, cWlCallback) : clActiveIfaces st
-        reqs = wlDisplaySync cWlDisplay st (fromIntegral newObj) : clReqs st
-    put st { clMaxUsedIface = newObj, clActiveIfaces = newActives, clReqs = reqs}
+    wobj <- getObjectId cWlDisplay
+    newId <- createNewId cWlCallback
+    addRequest $ wlDisplaySync wobj newId
 
 removeActiveIfac :: WObj -> ClMonad ()
 removeActiveIfac obj  = do
