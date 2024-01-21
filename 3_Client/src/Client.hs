@@ -48,12 +48,18 @@ compositorCreateSurface = do
             state.xdg_wm_base, state.wl_surface);
 -}
 
-wmBaseGetXdgSurface :: WObj -> ClMonad WObj
-wmBaseGetXdgSurface surface = do
+xdgGetXdgSurface :: WObj -> ClMonad WObj
+xdgGetXdgSurface surface = do
     wobj <- getObjectId cXdgWmBase
     newId <- createNewId cXdgSurface
     addRequest $ xdgWmBaseGetXdgSurface wobj newId surface
     pure $ fromIntegral newId                       -- TODO fromIntegral
+
+
+xdgSendPongAnswer :: WUint -> ClMonad ()
+xdgSendPongAnswer serial = do
+    wobj <- getObjectId cXdgWmBase
+    addRequest $ xdgWmBasePong wobj serial
 
 
 surfaceAssignToplevel ::  ClMonad WObj

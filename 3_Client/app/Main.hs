@@ -10,6 +10,7 @@ import Wire
 import Types
 import Client
 import ClientSupport
+
 import qualified Network.Socket             as Socket
 import qualified Control.Monad.State.Strict as ST
 import qualified Data.Text.IO               as TIO
@@ -47,9 +48,12 @@ runClient serverSock = do
 -}
 
 
-
+    setShmListener myShmListener
+    -- TODO: cleanup name setgWmBaseListener
+    setgWmBaseListener myXdgWmBaseListener
+    setgToplevelListener myXdgToplevelListener
     surface <- compositorCreateSurface
-    xdgSurface <- wmBaseGetXdgSurface surface
+    xdgSurface <- xdgGetXdgSurface surface
     topLevel <- surfaceAssignToplevel        -- xdgSurface
     toplevelSetTitle $ WString "Example client"
     surfaceCommit
@@ -60,6 +64,7 @@ runClient serverSock = do
 
 
 -- Define the callbacks for the Display events
+
 myDisplayListener :: WlDisplayListener
 myDisplayListener = WlDisplayListener
   (Just myDisplayError)
@@ -77,6 +82,8 @@ myDisplayDeleteId :: TwlDisplayDeleteId
 myDisplayDeleteId obj = do
     ST.liftIO $ putStrLn $ "GOT myDisplayDeleteId " <> show obj
     removeActiveIfac $ fromIntegral obj
+-- --------------------------------------------------------------------
+
 
 -- Define the callbacks for the RegisteryListener events
 myRegistryListener :: WlRegistryListener
@@ -109,18 +116,14 @@ myRegistryGlobal name interface version = do
         ST.liftIO $ putStrLn "GOTCHA REGISTER xdg_wm_base"
         bindToInterface (fromIntegral name) interface version
       _ -> pure()
-    {-
-    if (strcmp(interface, wl_compositor_interface.name) == 0) {
-        state->compositor = wl_registry_bind(
-           registry, name, &wl_compositor_interface, 4);
-    -}
-
 
     pure ()
 
 myRegistryGlobalRemove :: TwlRegistryGlobalRemove
 myRegistryGlobalRemove obj = do
     ST.liftIO $ putStrLn $ "GOT myRegistryGlobalRemove " <> show obj
+-- --------------------------------------------------------------------
+
 
 -- Define callback function for the wl_callback object
 myCallbackListener :: WlCallbackListener
@@ -130,4 +133,36 @@ myCallbackListener = WlCallbackListener (Just myCallbackDone)
 myCallbackDone :: TwlCallbackDone
 myCallbackDone wuint =
   ST.liftIO $ putStrLn $ "Received callback done for " <> show wuint
+-- --------------------------------------------------------------------
 
+-- Define callback function for the wl_shm object
+myShmListener :: WlShmListener
+myShmListener = WlShmListener (Just myShmFormat)
+
+myShmFormat :: TwlShmFormat
+myShmFormat format =
+  ST.liftIO $ putStrLn ("Received possible wl_shm format event: " <> show format)
+  -- TODO Use the enum entries
+-- --------------------------------------------------------------------
+
+
+-- Define callback functions for the xdg_wm_base object
+myXdgWmBaseListener :: XdgWmBaseListener
+myXdgWmBaseListener = XdgWmBaseListener (Just myXdgWmBasePing)
+
+myXdgWmBasePing :: TxdgWmBasePing
+myXdgWmBasePing serial = do
+  ST.liftIO $ putStrLn "Received xdg_wm_base_ping"
+  xdgSendPongAnswer serial
+
+-- --------------------------------------------------------------------
+
+
+-- Define callback functions for the xdg_toplevel object
+myXdgToplevelListener :: XdgToplevelListener
+myXdgToplevelListener = XdgToplevelListener (Just myXdgToplevelConfigure) Nothing
+
+myXdgToplevelConfigure :: TxdgToplevelConfigure
+myXdgToplevelConfigure width height states = do
+  ST.liftIO $ putStrLn ("Received XdgToplevelConfigure event. width: "
+          <> show width <> " height:" <> show height <> " states:" <> show states)
