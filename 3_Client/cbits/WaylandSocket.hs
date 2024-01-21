@@ -63,7 +63,7 @@ sendToWayland s bs fds = do
             let c_fdLen = fromIntegral fdLen
             socket <- Socket.unsafeFdSocket s
             len <- c_sendmsg_wayland socket bytePtr c_byteLen fdArray c_fdLen
-            putStrLn $ "RSX sendToWayland-3 len:" <> show len
+            putStrLn $ "RSX sendToWayland len:" <> show len
             if len < 0
                 then ioError $ userError "sendmsg failed"
                 else return $ fromIntegral len

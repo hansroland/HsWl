@@ -1607,8 +1607,6 @@ dispatchEvent msg = do
         ifName = fromMaybe T.empty (lookup (winpObj msg) (clActiveIfaces st))
     ST.liftIO $ M.when (T.null ifName)
         $ unhandledEv ((T.pack . show) (winpObj msg)) wopc
-    ST.liftIO $ putStrLn $ "dispatchEvent for " <> 
-        show ifName <> " obj:" <> show (winpObj msg) <> " opc:" <> show wopc
     case ifName of
         "wl_display" -> do
           let listener = clDisplayListener st

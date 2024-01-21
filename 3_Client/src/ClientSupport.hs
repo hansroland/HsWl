@@ -160,11 +160,10 @@ socketRead serverSock = do
     (bs, _fds) <- liftIO $ Err.catchIOError (recvFromWayland serverSock) (\_ -> return (BS.empty, []))
     -- TODO: Clean up lazy and strict bytestring : convert to lazy after socket read!!
     let bsl = BL.fromStrict bs
-    -- liftIO $ putStrLn $  "Received ByteString: " <> toHexString bsl
     let blocks = splitMsgs bsl
-    liftIO $ mapM_ (putStrLn . toHexString) blocks
+    -- liftIO $ mapM_ (putStrLn . toHexString) blocks
     let msgs = map getWInpMsg blocks
-    liftIO $ mapM_ print msgs
+    -- liftIO $ mapM_ print msgs
     mapM_ dispatchEvent msgs
     --
     -- socketLoop serverSock

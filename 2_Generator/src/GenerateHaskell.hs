@@ -338,8 +338,8 @@ genSetListener ifac = genLine (nameSetListenerFunc ifac
 -- >     let ifName = fromMaybe T.empty (lookup (winpObj msg) (clActiveIfaces st))
 -- >     ST.liftIO $ M.when (T.null ifName)
 -- >          $ unhandledEv (tshow (winpObj msg)) wopc
--- >     ST.liftIO $ putStrLn $ "dispatchEvent for " <>
--- >         show ifName <> " obj:" <> show (winpObj msg) <> " opc:" <> show wopc
+-- >     -- ST.liftIO $ putStrLn $ "dispatchEvent for " <>
+-- >     --     show ifName <> " obj:" <> show (winpObj msg) <> " opc:" <> show wopc
 -- >     case ifName of
 -- >             "wl_registry"  -> do
 -- >                 let listener = clRegistryListener st
@@ -366,8 +366,8 @@ genDispatchEventHeader =
     indent 8 <> genLine "ifName = fromMaybe T.empty (lookup (winpObj msg) (clActiveIfaces st))" <>
     indent 4 <> genLine "ST.liftIO $ M.when (T.null ifName)" <>
     indent 8 <> genLine "$ unhandledEv ((T.pack . show) (winpObj msg)) wopc" <>
-    indent 4 <> genLine "ST.liftIO $ putStrLn $ \"dispatchEvent for \" <> " <>
-    indent 8 <> genLine "show ifName <> \" obj:\" <> show (winpObj msg) <> \" opc:\" <> show wopc" <>
+    -- indent 4 <> genLine "ST.liftIO $ putStrLn $ \"dispatchEvent for \" <> " <>
+    -- indent 8 <> genLine "show ifName <> \" obj:\" <> show (winpObj msg) <> \" opc:\" <> show wopc" <>
     indent 4 <> genLine "case ifName of"
 
 
