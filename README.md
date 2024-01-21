@@ -1,7 +1,7 @@
 # HsWl Haskell Wayland Client
 
-This is a proof of concept, that it's possible to write a Wayland client in Haskell
-withour calling the libwayland client library via FFI. The code implements the Wayland wire protocol.
+This is a proof of concept: Write a simple Wayland client in Haskell
+without calling the libwayland client library via FFI. The code implements directly the Wayland wire protocol.
 
 We have the following subdirectories:
 
@@ -38,4 +38,11 @@ Additional changes will be needed during the development of the client. The `enu
 
 ## 3_Client
 
-This directory contains a extremly simple Haskell client for Wayland.
+This directory contains a extremly simple Haskell client for Wayland. This is currently the main focus of the development.
+
+## Ressources
+
+The used *.xml files:
+
+* [wayland.xml](https://gitlab.freedesktop.org/wayland/wayland/-/blob/main/protocol/wayland.xml)
+* [xdg-shell.xml](https://cgit.freedesktop.org/wayland/wayland-protocols/tree/stable/xdg-shell/xdg-shell.xml)
