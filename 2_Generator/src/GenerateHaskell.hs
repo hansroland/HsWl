@@ -53,7 +53,6 @@ genModuleHeader = genLine "{-# LANGUAGE OverloadedStrings #-}"
     <> genLine "import qualified Data.ByteString.Lazy       as BL"
     <> genLine "import qualified Control.Monad              as M"
     <> genLine "import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)"
-    <> genLine "import Data.List (find)"
     <> genLine "import qualified Data.Text as T"
     <> genLine "import Data.Text (Text)"
     <> bnl
@@ -262,7 +261,6 @@ genListenerField req = fromText (reqName req <> " :: Maybe " <>
 -- >     clRegistryListener :: Maybe WlRegistryListener,
 -- >     < more of the above lines for each interface>
 -- >     clActiveIfaces :: [IfacKey],
--- >     clMaxUsedIface :: WObj,
 -- >     clReqs :: [BS.ByteString] }
 genClStateData :: [WlInterface] -> Builder
 genClStateData ifacs = genClStateDataHeader
@@ -281,7 +279,6 @@ genClStateDataListener ifac =
 genClStateDataEnd :: Builder
 genClStateDataEnd = indent 4 <>
     genLine "clActiveIfaces :: [IfacKey],"
-    <> indent 4 <> genLine "clMaxUsedIface :: WObj,"
     <> indent 4 <> genLine "clReqs :: [BS.ByteString] }"
 
 -- Generate the initialization function for the ClState data structure
@@ -290,7 +287,6 @@ genClStateDataEnd = indent 4 <>
 -- >     clRegistryListener = Nothing
 -- >     < more of the above lines for each interface>
 -- >     clActiveIfaces = initActiveIfaces
--- >     clMaxUsedIface = 1
 -- >     clReqs = []  }
 
 genClStateInit ::  [WlInterface] -> Builder
@@ -310,7 +306,6 @@ genClStateInitListener ifac =
 genClStateInitEnd :: Builder
 genClStateInitEnd = {- bnl <> -}
         indent 4 <> genLine "clActiveIfaces = initActiveIfaces,"
-        <> indent 4 <> genLine "clMaxUsedIface = 1,"
         <> indent 4 <> genLine "clReqs = [] }"
 
 

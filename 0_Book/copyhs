@@ -1,0 +1,1 @@
+cp Wire.hs ../3_Client/src/Wire.hs

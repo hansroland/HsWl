@@ -26,13 +26,36 @@ main = do
 runClient :: Socket.Socket -> ClMonad ()
 runClient serverSock = do
     displayGetRegistry
-    displaySync
     setDisplayListener myDisplayListener
     setRegistryListener myRegistryListener
     setCallbackListener myCallbackListener
+    displaySync
     sendRequests serverSock
+    socketRead serverSock
 
-    socketLoop serverSock
+{-
+    state.wl_surface = wl_compositor_create_surface(state.wl_compositor);
+    state.xdg_surface = xdg_wm_base_get_xdg_surface(
+            state.xdg_wm_base, state.wl_surface);
+    printf ("RSX Before xdg_surface_add_listener\n");
+    xdg_surface_add_listener(state.xdg_surface, &xdg_surface_listener, &state);
+    printf ("RSX Before xdg_surface_get_toplevel\n");
+    state.xdg_toplevel = xdg_surface_get_toplevel(state.xdg_surface);
+    xdg_toplevel_set_title(state.xdg_toplevel, "Example client");
+    printf ("RSX Before wl_surface_commit\n");
+    wl_surface_commit(state.wl_surface);
+-}
+
+
+
+    surface <- compositorCreateSurface
+    xdgSurface <- wmBaseGetXdgSurface surface
+    topLevel <- surfaceAssignToplevel        -- xdgSurface
+    toplevelSetTitle $ WString "Example client"
+    surfaceCommit
+    sendRequests serverSock
+    socketRead serverSock
+
     return ()
 
 
@@ -65,25 +88,26 @@ myRegistryListener = WlRegistryListener
   -- wlRegistryGlobal :: ClState ->  WUint -> WString -> WUint -> IO ()
 myRegistryGlobal :: TwlRegistryGlobal
 myRegistryGlobal name interface version = do
+   {-
     ST.liftIO $ putStrLn $ "myRegistryGlobal: "
       <> show name
       <> " " <> show name
       <> " " <> show interface
       <> " " <> show version
+   -}
 
     case interface of
       WString "wl_compositor" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER compositor"
-        bindToInterface (fromIntegral name) interface
+        bindToInterface (fromIntegral name) interface version
 
       WString "wl_shm" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER wl_shm"
-        bindToInterface (fromIntegral name) interface
+        bindToInterface (fromIntegral name) interface version
 
       WString "xdg_wm_base" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER xdg_wm_base"
-        bindToInterface (fromIntegral name) interface
-
+        bindToInterface (fromIntegral name) interface version
       _ -> pure()
     {-
     if (strcmp(interface, wl_compositor_interface.name) == 0) {

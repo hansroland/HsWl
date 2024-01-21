@@ -15,7 +15,6 @@ import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BL
 import qualified Control.Monad              as M
 import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)
-import Data.List (find)
 import qualified Data.Text as T
 import Data.Text (Text)
 
@@ -1474,7 +1473,6 @@ data ClState = ClState {
     clgToplevelListener :: Maybe XdgToplevelListener,
     clgPopupListener :: Maybe XdgPopupListener,
     clActiveIfaces :: [IfacKey],
-    clMaxUsedIface :: WObj,
     clReqs :: [BS.ByteString] }
 
 -- Initializer for ClState
@@ -1500,7 +1498,6 @@ initClState = ClState {    clDisplayListener = Nothing,
     clgToplevelListener = Nothing,
     clgPopupListener = Nothing,
     clActiveIfaces = initActiveIfaces,
-    clMaxUsedIface = 1,
     clReqs = [] }
 -- Generate the setter functions for the listeners
 

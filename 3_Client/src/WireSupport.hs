@@ -7,14 +7,14 @@ module WireSupport where
 
 import           Types
 
+import Data.Binary
 import           Data.Binary.Put
+import           Data.Binary.Get
 import           Data.Text (Text)
 import qualified Data.ByteString            as BL
 import qualified Data.ByteString            as BS
-import           Data.Binary.Get
 import qualified Data.Text                  as T
 import qualified Data.Text.IO               as TIO
--- import qualified Data.Binary.Get            as BG
 
 -- TODO move to Types, define a Binary instance
 putFd :: WFd -> Put
@@ -49,11 +49,20 @@ parseWArray = error "parseWArray is not yet defined in WireSupport"
 
 
 
-
-
-type IfacKey = (WObj, Text)
 initActiveIfaces :: [IfacKey]
-initActiveIfaces = [ (1, "wl_display"), (2, "wl_registry")]
+initActiveIfaces = [ (1, "wl_display")]
+
+    -- Note the wlRegistryBind function in the xml file is wrong
+rsxRegistryBind :: WObj -> WUint -> WString -> WUint -> WNewId -> BS.ByteString
+rsxRegistryBind wobj name interface version xid = runByteString $ do
+   put wobj
+   put $ WOpc 0
+   putWord16host $ fromIntegral $ 20 + calcWStringLength interface
+   put name
+   put interface
+   put version
+   put xid
+
 
 
 

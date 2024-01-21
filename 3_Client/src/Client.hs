@@ -1,42 +1,26 @@
-
+{-# LANGUAGE OverloadedStrings #-}
 
 module Client where
 
+import ClientSupport
 import Wire
--- import Mayland
-
-
+import WireSupport
 
 import Types
 import WaylandSocket
+
 import qualified Network.Socket             as Socket
-
 import qualified Data.ByteString            as BS
-
-import Control.Monad.State.Strict
-
-import Data.Text (Text)
-import ClientSupport
--- import qualified Data.Text as T
-
-{-
--- add C-Code to translate here !!
+import           Control.Monad.State.Strict
+import qualified Data.Text as T
 
 
--}
+bindToInterface :: WInt -> WString-> WUint -> ClMonad ()
+bindToInterface name interface version = do
+    wobj <- getObjectId cWlRegistry
+    newId <- createNewId $ unWString interface
+    addRequest $ rsxRegistryBind  wobj (fromIntegral name) interface version (fromIntegral newId)
 
-
-bindToInterface :: WInt -> WString -> ClMonad ()
-bindToInterface name (WString txt) = do
-    wobj <- getObjectId cWlDisplay
-    newId <- createNewId txt
-    addRequest $ wlRegistryBind  wobj (fromIntegral name) (fromIntegral newId)
-
-
---    let newObj = 1 + clMaxUsedIface st
---        newActives  = (newObj, txt) : clActiveIfaces st
---        reqs = wlRegistryBind cWlDisplay st (fromIntegral name) (fromIntegral newObj) : clReqs st
---    put $ st { clMaxUsedIface = newObj, clActiveIfaces = newActives, clReqs = reqs}
 
 
 displayGetRegistry :: ClMonad ()
@@ -51,10 +35,64 @@ displaySync = do
     newId <- createNewId cWlCallback
     addRequest $ wlDisplaySync wobj newId
 
+
+compositorCreateSurface :: ClMonad WObj
+compositorCreateSurface = do
+    wobj <- getObjectId cWlCompositor
+    newId <- createNewId cWlSurface
+    addRequest $ wlCompositorCreateSurface wobj newId
+    pure $ fromIntegral newId                       -- TODO fromIntegral
+
+{-}
+    state.xdg_surface = xdg_wm_base_get_xdg_surface(
+            state.xdg_wm_base, state.wl_surface);
+-}
+
+wmBaseGetXdgSurface :: WObj -> ClMonad WObj
+wmBaseGetXdgSurface surface = do
+    wobj <- getObjectId cXdgWmBase
+    newId <- createNewId cXdgSurface
+    addRequest $ xdgWmBaseGetXdgSurface wobj newId surface
+    pure $ fromIntegral newId                       -- TODO fromIntegral
+
+
+surfaceAssignToplevel ::  ClMonad WObj
+surfaceAssignToplevel = do
+    wobj <- getObjectId cXdgSurface
+    newId <- createNewId cXdgToplevel
+    addRequest $ xdgSurfaceGetToplevel wobj newId
+    pure $ fromIntegral newId                       -- TODO fromIntegral
+
+
+surfaceCommit :: ClMonad ()
+surfaceCommit = do
+    wobj <- getObjectId cWlSurface
+    addRequest $ wlSurfaceCommit wobj
+
+
+toplevelSetTitle :: WString -> ClMonad ()
+toplevelSetTitle title = do
+    wobj <- getObjectId cXdgToplevel
+    addRequest $ xdgToplevelSetTitle wobj title
+
+
 removeActiveIfac :: WObj -> ClMonad ()
 removeActiveIfac obj  = do
     st <- get
-    put $ st {clActiveIfaces = filter ((/=) obj . fst) (clActiveIfaces st) }
+    -- put $ st {clActiveIfaces = filter ((/=) obj . fst) (clActiveIfaces st) }
+    -- let actives = st {clActiveIfaces = filter ((/=) obj . fst) (clActiveIfaces st) }
+    let newacts = filter oks (clActiveIfaces st)
+    liftIO $ printActiveIfaces newacts
+    put $ st {clActiveIfaces = newacts }
+  where
+    oks (o,_) = o /= obj
+
+printActiveIfaces :: [IfacKey] -> IO ()
+printActiveIfaces keys = do
+    putStrLn ("ACTIVE Interfaces: " <> concatMap showIfac keys)
+  where
+    showIfac :: IfacKey -> String
+    showIfac (obj, txt ) = "(" <> show obj <> ", "  <> T.unpack txt  <> ")"
 
 collectRequests :: ClMonad BS.ByteString
 collectRequests = do mconcat. reverse . clReqs <$> get

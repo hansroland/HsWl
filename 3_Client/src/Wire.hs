@@ -15,7 +15,6 @@ import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Lazy       as BL
 import qualified Control.Monad              as M
 import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)
-import Data.List (find)
 import qualified Data.Text as T
 import Data.Text (Text)
 
@@ -188,7 +187,7 @@ wlDataOfferAccept wobj serial mimeType = runByteString $ do
     putWord16host  $ fromIntegral len
     put serial
     put mimeType
-  where len = 12 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> [])
+  where len = 12 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: request that the data is transferred opc:1
 wlDataOfferReceive :: WObj -> WString -> WFd -> BS.ByteString
@@ -198,7 +197,7 @@ wlDataOfferReceive wobj mimeType fd = runByteString $ do
     putWord16host  $ fromIntegral len
     put mimeType
     put fd
-  where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> [])
+  where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: destroy data offer opc:2
 wlDataOfferDestroy :: WObj -> BS.ByteString
@@ -232,7 +231,7 @@ wlDataSourceOffer wobj mimeType = runByteString $ do
     put $ WOpc 0
     putWord16host  $ fromIntegral len
     put mimeType
-  where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> [])
+  where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: destroy the data source opc:1
 wlDataSourceDestroy :: WObj -> BS.ByteString
@@ -393,7 +392,7 @@ wlShellSurfaceSetTitle wobj title = runByteString $ do
     put $ WOpc 8
     putWord16host  $ fromIntegral len
     put title
-  where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> [])
+  where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: set surface class opc:9
 wlShellSurfaceSetClass :: WObj -> WString -> BS.ByteString
@@ -402,7 +401,7 @@ wlShellSurfaceSetClass wobj xclass = runByteString $ do
     put $ WOpc 9
     putWord16host  $ fromIntegral len
     put xclass
-  where len = 8 + sum (calcWStringLength <$> [xclass])  + sum (calcWArrayLength  <$> [])
+  where len = 8 + sum (calcWStringLength <$> [xclass])  + sum (calcWArrayLength  <$> []) 
 
 --  Interface: WlSurface - an onscreen surface
 
@@ -860,7 +859,7 @@ xdgToplevelSetTitle wobj title = runByteString $ do
     put $ WOpc 2
     putWord16host  $ fromIntegral len
     put title
-  where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> [])
+  where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: set application ID opc:3
 xdgToplevelSetAppId :: WObj -> WString -> BS.ByteString
@@ -869,7 +868,7 @@ xdgToplevelSetAppId wobj appId = runByteString $ do
     put $ WOpc 3
     putWord16host  $ fromIntegral len
     put appId
-  where len = 8 + sum (calcWStringLength <$> [appId])  + sum (calcWArrayLength  <$> [])
+  where len = 8 + sum (calcWStringLength <$> [appId])  + sum (calcWArrayLength  <$> []) 
 
 --  Req: show the window menu opc:4
 xdgToplevelShowWindowMenu :: WObj -> WObj -> WUint -> WInt -> WInt -> BS.ByteString
@@ -1474,7 +1473,6 @@ data ClState = ClState {
     clgToplevelListener :: Maybe XdgToplevelListener,
     clgPopupListener :: Maybe XdgPopupListener,
     clActiveIfaces :: [IfacKey],
-    clMaxUsedIface :: WObj,
     clReqs :: [BS.ByteString] }
 
 -- Initializer for ClState
@@ -1500,7 +1498,6 @@ initClState = ClState {    clDisplayListener = Nothing,
     clgToplevelListener = Nothing,
     clgPopupListener = Nothing,
     clActiveIfaces = initActiveIfaces,
-    clMaxUsedIface = 1,
     clReqs = [] }
 -- Generate the setter functions for the listeners
 
@@ -1610,7 +1607,7 @@ dispatchEvent msg = do
         ifName = fromMaybe T.empty (lookup (winpObj msg) (clActiveIfaces st))
     ST.liftIO $ M.when (T.null ifName)
         $ unhandledEv ((T.pack . show) (winpObj msg)) wopc
-    ST.liftIO $ putStrLn $ "dispatchEvent for " <>
+    ST.liftIO $ putStrLn $ "dispatchEvent for " <> 
         show ifName <> " obj:" <> show (winpObj msg) <> " opc:" <> show wopc
     case ifName of
         "wl_display" -> do
@@ -1790,3 +1787,5 @@ dispatchEvent msg = do
               2 -> pxdgPopupRepositioned (xdgPopupRepositioned (fromJust listener)) msg
               _ -> error (T.unpack ifName <> "Unknown op-code:" <> show wopc)
         _ ->  error ("dispatchEvent: No case for interface object " <> T.unpack ifName)
+
+

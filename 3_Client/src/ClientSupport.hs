@@ -9,7 +9,7 @@ import Wire
 
 import Types
 import WaylandSocket
-import WireSupport ( parseWObj, parseWOpc, IfacKey)
+import WireSupport ( parseWObj, parseWOpc)
 
 import Data.Binary.Get
 
@@ -38,9 +38,11 @@ import Control.Monad.State.Strict
 createNewId :: Text -> ClMonad WNewId
 createNewId txt = do
     st <- get
-    let newObj = 1 + clMaxUsedIface st
-        newActives  = (newObj, txt) : clActiveIfaces st
-    put $ st { clMaxUsedIface = newObj, clActiveIfaces = newActives}
+    let usedObj = map fst $ clActiveIfaces st
+        newObj = head $ filter(`notElem` usedObj) [1..]
+        newActives = (newObj, txt) : clActiveIfaces st
+    liftIO $ putStrLn ("CREATE new WOBJ for " <> T.unpack txt <> ": " <> show newObj)
+    put $ st { clActiveIfaces = newActives }
     pure $ fromIntegral newObj
 
 addRequest :: BS.ByteString -> ClMonad ()
@@ -153,8 +155,8 @@ toHexText =  T.pack . toHexString
 toHexString :: BL.ByteString -> String
 toHexString = BL.foldr ((<>) . printf "%02x") ""
 
-socketLoop :: Socket.Socket -> ClMonad ()
-socketLoop serverSock = do
+socketRead :: Socket.Socket -> ClMonad ()
+socketRead serverSock = do
     (bs, _fds) <- liftIO $ Err.catchIOError (recvFromWayland serverSock) (\_ -> return (BS.empty, []))
     -- TODO: Clean up lazy and strict bytestring : convert to lazy after socket read!!
     let bsl = BL.fromStrict bs

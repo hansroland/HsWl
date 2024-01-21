@@ -1,5 +1,5 @@
 {-# Language GeneralisedNewtypeDeriving, DerivingStrategies #-}
-{-# LANGUAGE OverloadedStrings #-}
+
 module Types where
 
 import Data.Word
@@ -14,6 +14,7 @@ import Data.Binary.Get
 import Text.Printf
 
 import qualified Data.ByteString       as BS
+
 -- --------------------------------------------------------------------
 -- Wayland types on the wire
 -- --------------------------------------------------------------------
@@ -65,17 +66,8 @@ newtype WString = WString {getString ::Text}
     deriving newtype (Read, Show)
 
 instance Binary WString where
-    put (WString _s) = error "put instance for WString not yet defined"
+    put = putWString
     get = parseWString
-
--- TODO WEventId Still used ??
-newtype WEventId = WEventId Word16
-    deriving (Eq, Ord, Enum, Num)
-    deriving newtype (Read, Show, Integral, Real)
-
-instance Binary WEventId where
-    put (WEventId _s) = error "put instance for WEventId not yet defined"
-    get = error "get instance for WEventId not yet defined"
 
 
 newtype WFixed = WFixed Word32
@@ -105,12 +97,14 @@ instance Binary WArray where
     get = error "get instance for WArray not yet defined"
 
 
+type IfacKey = (WObj, Text)
+
 parseWString :: Get WString
 parseWString = do
     lenW <- getWord32host
     let dataLen = fromIntegral lenW
     if dataLen == 0 -- this is a null string, it's not even an empty string
-        then pure $ WString "(null)" -- TODO: better representation?
+        then pure $ WString $ T.pack "(null)" -- TODO: better representation?
         else do
             bs <- getByteString (dataLen - 1)
             skip 1                                  -- terminating NUL byte
@@ -126,9 +120,9 @@ paddedLength len = if rem len 4 == 0
 putWString :: WString -> Put
 putWString (WString txt) = do
     let len = 1 + T.length txt
-        pad = paddedLength len
+        pad = paddedLength len - len
     putWord32host $ fromIntegral len
-    put $ T.encodeUtf8 txt
+    putByteString $ T.encodeUtf8 txt
     putWord8 0                 -- terminating NUL byte
     M.replicateM_ pad $ putWord8 0
 
@@ -136,14 +130,14 @@ calcWStringLength :: WString -> Int
 calcWStringLength (WString txt) =
     let len = 1 + T.length txt
         pad = paddedLength len
-    in 8 + len + pad
+    in 4 + pad
 
 calcWArrayLength  :: WArray -> Int
 calcWArrayLength _ = undefined
 
-
-toWEventId :: Integral a => a -> WEventId
-toWEventId = WEventId . fromIntegral
+-- TODO Remove this wart
+unWString :: WString -> Text
+unWString (WString txt) = txt
 
 
 data WInputMsg = WInputMsg
