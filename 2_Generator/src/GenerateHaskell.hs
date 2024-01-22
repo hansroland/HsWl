@@ -16,15 +16,15 @@ genProtocol prot = genModuleHeader
     <> genMonad
     <> genLine "-- Constants for Interface Names"
     <> mconcat (genInterfaceConst <$> interfaces) <> bnl
-    <> genTitle "Request Handling"
+    <> genTitle "* Request Handling"
 
     <> mconcat (genReqInterface <$> interfaces)
-    <> genTitle "Event Handling"
-    <> genLine "-- Event Handling Function Types"
+    <> genTitle "* Event Handling"
+    <> genLine "-- ** Event Handling Function Types"
     <> mconcat (map genEventFunTypes interfaces) <> bnl
-    <> genLine "-- Proxy Functions for all Events" <> bnl
+    <> genLine "-- ** Proxy Functions for all Events" <> bnl
     <> mconcat (map genProxyFunctions interfaces)
-    <> genLine "-- Listeners for all Interfaces" <> bnl
+    <> genLine "-- ** Listeners for all Interfaces" <> bnl
     <> mconcat (map genListenerData interfaces) <> bnl
     <> genLine "-- data type ClState" <> bnl
     <> genClStateData interfaces
@@ -75,12 +75,12 @@ genInterfaceConst ifac =
 -- Request Handling
 -- ----------------------------------------------------------------------
 
--- Generate the requests of an Interface
+-- | Generate the requests of an Interface
 genReqInterface :: WlInterface -> Builder
 genReqInterface ifac =
   if hasRequests ifac
   then
-    funtit ("Interface: " <> ifaName ifac <> " - " <> descrSummary (ifaDescr ifac)) <>
+    sectiontit ("Interface: " <> ifaName ifac <> " - " <> descrSummary (ifaDescr ifac)) <>
     bnl <>
     genRequests (ifaRequests ifac)
   else
@@ -89,7 +89,7 @@ genReqInterface ifac =
 genRequests :: [WlRequest] -> Builder
 genRequests reqs = mconcat $ map genRequest reqs
 
--- Generate a single request
+-- | Generate a single request
 --
 -- > wlDisplaySync :: Text -> ClState -> WNewId -> BS.ByteString
 -- > wlDisplaySync wobj callback  = runByteString $ do
@@ -447,7 +447,11 @@ bnl :: Builder
 bnl = fromText nl
 
 funtit :: Text -> Builder
-funtit txt = fromText "--  " <> fromText txt <> bnl
+funtit txt = fromText "-- | " <> fromText txt <> bnl
+
+sectiontit :: Text -> Builder
+sectiontit txt = fromText "-- ** " <> fromText txt <> bnl
+
 
 indent :: Int -> Builder
 indent n = fromText (T.replicate n " ")
