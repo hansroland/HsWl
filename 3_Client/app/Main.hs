@@ -52,6 +52,7 @@ runClient serverSock = do
     -- TODO: cleanup name setgWmBaseListener
     setgWmBaseListener myXdgWmBaseListener
     setgToplevelListener myXdgToplevelListener
+    setgSurfaceListener myXdgSurfaceListener
     surface <- compositorCreateSurface
     xdgSurface <- xdgGetXdgSurface surface
     topLevel <- surfaceAssignToplevel        -- xdgSurface
@@ -166,3 +167,23 @@ myXdgToplevelConfigure :: TxdgToplevelConfigure
 myXdgToplevelConfigure width height states = do
   ST.liftIO $ putStrLn ("Received XdgToplevelConfigure event. width: "
           <> show width <> " height:" <> show height <> " states:" <> show states)
+-- --------------------------------------------------------------------
+
+
+myXdgSurfaceListener :: XdgSurfaceListener
+myXdgSurfaceListener = XdgSurfaceListener (Just myXdgSurfaceConfigure)
+
+myXdgSurfaceConfigure :: TxdgSurfaceConfigure
+myXdgSurfaceConfigure serial = do
+  ST.liftIO $ putStrLn "Received XdgToplevelConfigure event"
+  surfaceAckConfigure serial
+
+{-
+    printf ("RSX xdg_surface_configure\n");
+    struct client_state *state = data;
+    xdg_surface_ack_configure(xdg_surface, serial);
+
+    struct wl_buffer *buffer = draw_frame(state);
+    wl_surface_attach(state->wl_surface, buffer, 0, 0);
+    wl_surface_commit(state->wl_surface);
+-}

@@ -62,6 +62,11 @@ xdgSendPongAnswer serial = do
     addRequest $ xdgWmBasePong wobj serial
 
 
+surfaceAckConfigure :: WUint -> ClMonad ()
+surfaceAckConfigure serial = do
+    wobj <- getObjectId cXdgSurface
+    addRequest $ xdgSurfaceAckConfigure wobj serial
+
 surfaceAssignToplevel ::  ClMonad WObj
 surfaceAssignToplevel = do
     wobj <- getObjectId cXdgSurface

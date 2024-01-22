@@ -88,13 +88,13 @@ instance Binary WFd where
     get = error "get instance for WFd not yet defined"
 
 
-newtype WArray = WArray Int
-    deriving (Eq, Ord, Enum, Num)
-    deriving newtype (Read, Show, Integral, Real)
+newtype WArray = WArray [WUint]
+    deriving (Eq, Ord)
+    deriving newtype (Read, Show)
 
 instance Binary WArray where
     put (WArray _s) = error "put instance for WArray not yet defined"
-    get = error "get instance for WArray not yet defined"
+    get = parseWArray
 
 
 type IfacKey = (WObj, Text)
@@ -139,6 +139,12 @@ calcWArrayLength _ = undefined
 unWString :: WString -> Text
 unWString (WString txt) = txt
 
+
+parseWArray :: Get WArray
+parseWArray = do
+    len <- getWord32host
+    arr <- mapM (const get) [1..len]
+    pure $ WArray arr
 
 data WInputMsg = WInputMsg
     { winpObj :: WObj
