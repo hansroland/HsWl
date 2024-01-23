@@ -84,7 +84,8 @@ newtype WFd = WFd Int
     deriving newtype (Read, Show, Integral, Real)
 
 instance Binary WFd where
-    put (WFd _s) = error "put instance for WFd not yet defined"
+    -- WFds are not sent over the wire. We use an ancillary channel
+    put (WFd _s) = pure ()
     get = error "get instance for WFd not yet defined"
 
 

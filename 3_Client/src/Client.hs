@@ -8,6 +8,7 @@ import WireSupport
 
 import Types
 import WaylandSocket
+import Shm
 
 import qualified Network.Socket             as Socket
 import qualified Data.ByteString            as BS
@@ -53,9 +54,38 @@ compositorCreateSurface = do
     addRequest $ wlCompositorCreateSurface wobj newId
     pure $ fromIntegral newId                       -- TODO fromIntegral
 
--- i Interface wl_shm_pool - a shared memory pool
+-- * Interface wl_shm_pool - a shared memory pool
 
--- - create_pool opc 0: create a shm pool
+-- | pool create buffer opc 0:  create a buffer from the pool
+shmPoolCreateBuffer :: WInt -> WInt -> WInt -> WInt -> WUint -> ClMonad ()
+shmPoolCreateBuffer offset width height stride format = do
+    wobj <- getObjectId cWlShmPool
+    newId <- createNewId cWlBuffer
+    -- TODO finish this function
+    pure ()
+
+
+-- | pool destroy opc 1:
+shmPoolDestroy :: ClMonad ()
+shmPoolDestroy = do
+    wobj <- getObjectId cWlShmPool
+    addRequest $ wlShmPoolDestroy wobj
+
+-- * Interface wl_shm
+
+-- | create_pool opc 0: create a shm pool
+shmCreatePool :: WFd -> WInt -> ClMonad WNewId
+shmCreatePool fd size = do
+    wobj <- getObjectId cWlShm
+    newId <- createNewId cWlShmPool
+    -- https://gitlab.freedesktop.org/wayland/wayland/-/blob/main/src/wayland-shm.c?ref_type=heads
+    -- https://en.m.wikipedia.org/wiki/Unix_domain_socket
+    addRequest $ wlShmCreatePool wobj newId fd size
+
+
+    pure newId
+
+
 
 
 -- i Interface wl_buffer - content for a wl_surface

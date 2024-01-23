@@ -23,6 +23,7 @@ library
                       , Wire
                       , WireSupport
                       , ClientSupport
+                      , Shm
     other-modules:    WaylandSocket
     C-sources:           cbits/wayland-msg-handling.c
     include-dirs:        cbits
@@ -35,6 +36,7 @@ library
                       , bytestring
                       , text
                       , binary
+                      , random-strings
     hs-source-dirs:   cbits, src
     default-language: Haskell2010
 

@@ -10,6 +10,7 @@ import Wire
 import Types
 import Client
 import ClientSupport
+import Shm
 
 import qualified Network.Socket             as Socket
 import qualified Control.Monad.State.Strict as ST
@@ -187,3 +188,39 @@ myXdgSurfaceConfigure serial = do
     wl_surface_attach(state->wl_surface, buffer, 0, 0);
     wl_surface_commit(state->wl_surface);
 -}
+
+
+-- --------------------------------------------------------------------
+-- Create and fill a buffer
+-- --------------------------------------------------------------------
+drawFrame :: {-PtrShm -> -} ClMonad ()
+drawFrame {-shm-} = do
+  ST.liftIO $ putStrLn "drawFrame active"
+  let width  = 640 :: Int
+      height = 480 :: Int
+      stride = width * (4 :: Int)              -- 2560
+      size   = stride * height                 -- 1228800  x'012C00'
+
+  -- Put this part into the shmCreatePool function  memAddr must be stored somewhere
+  fd <- ST.liftIO $ allocateShmFile size
+  {-
+  memAddr <- mmap nullPtr (fromIntegral size)
+            (cPROT_READ + cPROT_WRITE) cMAP_SHARED (fromIntegral fd) 0
+  myPutStrLn (" memAddr " ++ show memAddr ++ " " ++ show cMAP_FAILED)
+  shmPool <- shmCreatePool shm (fromIntegral fd) (fromIntegral size)
+
+  buffer <- shmPoolCreateBuffer shmPool 0
+            (fromIntegral width) (fromIntegral height) (fromIntegral stride) wL_SHM_FORMAT_XRGB8888
+  shmPoolDestroy shmPool
+  closeFd fd
+  munmap memAddr (fromIntegral size)
+
+
+  -- wl_buffer_add_listener(buffer, &wl_buffer_listener, NULL);
+  bufHandler <- wrapBufferHandler bufferReleaseHandler
+  let bufListener = BufferListenerData {release = bufHandler}
+  bufferAddListener buffer bufListener
+  --
+  pure buffer
+ -}
+  pure ()
