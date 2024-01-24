@@ -26,12 +26,6 @@ import qualified System.Posix.Signals       as Signals
 import qualified Network.Socket             as Socket
 import qualified Control.Concurrent.STM     as STM
 
-
-import qualified Data.Text as T
-import Data.Text (Text)
-import Data.Maybe
-import Text.Printf
-import Data.List
 import Control.Monad.State.Strict
 
 -- --------------------------------------------------------------------

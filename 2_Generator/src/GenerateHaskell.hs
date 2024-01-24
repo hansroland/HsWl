@@ -95,15 +95,29 @@ genRequests ifacname reqs = mconcat $ map (genRequest ifacname) reqs
 
 -- | Generate a single request
 --
--- > wlDisplaySync :: Text -> ClState -> WNewId -> BS.ByteString
--- > wlDisplaySync wobj callback  = runByteString $ do
--- >     put wobj
--- >     put $ WOpc 0
--- >     putWord16host 12
--- >     put callback
+-- wlShmCreatePool :: Text -> WFd -> WInt -> ClMonad WObj
+-- wlShmCreatePool xid fd size = do
+--     wobj <- getObjectId cWlShm
+--     xid' <- createNewId xid                      <--------
+--     addRequest $ runByteString $ do
+--         put wobj
+--         put $ WOpc 0
+--         putWord16host 16
+--         put xid'
+--         put fd
+--         put size
+--     pure xid'                                    <---------
+--
+--  In the *.xml file the type of the first parameter is `NewId`.
+--  It will be change during the generation to ` Text`.
+--  To do the necessary changes we use the following conventions
+--     xml....  The type / name for the argument from the xml file
+--     api....  The type /name  for the argument to generate the request functions.
+-- The lines marked with an left arrow, are only generated when we have an
+-- argument of type ` WNewId`.
 genRequest :: Text -> WlRequest -> Builder
 genRequest ifacName req =
-  funtit ("Req: " <> descrSummary (reqDescr req) <> " opc:" <> tshow (reqOpc req)) <>
+  funtit ("Request opc: " <> tshow (reqOpc req) <> " - " <> descrSummary (reqDescr req)) <>
       fromText (reqName req) <> genReqType <>
       fromText (reqName req) <> genReqBody
   where
@@ -116,8 +130,7 @@ genRequest ifacName req =
     xmlArgPairs = zip xmlTypes xmlNames
     nameTypeTriples = replTripple <$> xmlArgPairs
     replTripple :: (Text, Text) -> (Text, Text, Maybe Text)
-    replTripple ("WNewId", name) =
-            ("Text", name <> "'", Just name)
+    replTripple ("WNewId", name) = ("Text", name <> "'", Just name)
     replTripple (ty, nm ) = (ty, nm, Nothing)
     apiTypes = fst3 <$> nameTypeTriples              -- new api type names
     apiNames = snd3 <$> nameTypeTriples              -- new api argument names
@@ -125,7 +138,7 @@ genRequest ifacName req =
     changedXmlName = head changedXmlNames            -- argument name to change
     changedApiName = changedXmlName <> "'"           -- changed argument name
 
-    -- Generate the type annotation for the request
+    -- Generate the type annotation for the request function
     genReqType :: Builder
     genReqType = genLine $ " :: "  <> mconcat itypes
       where
@@ -135,6 +148,7 @@ genRequest ifacName req =
           then "ClMonad WObj"
           else "ClMonad ()"
 
+    -- Generate the body of the request function
     genReqBody :: Builder
     genReqBody
         = fromText (" " <> T.intercalate " " xmlNames <> " = ")
@@ -142,9 +156,8 @@ genRequest ifacName req =
                <> genReqDoArgs
                <> genReqDoWhere
                <> bnl
-      where
-        args = mconcat $ intersperse " " apiNames
 
+    -- Generate the first do block
     genReqDoHeader :: Builder
     genReqDoHeader = genLine "do" <>
         indent 4 <> genLine ("wobj <- getObjectId " <> ifacName)  <>
@@ -156,9 +169,10 @@ genRequest ifacName req =
         indent 8 <> genLine ("put $ WOpc " <> tshow (reqOpc req)) <>
         indent 8 <> fromText "putWord16host " <>
         if needsWhere
-        then genLine " $ fromIntegral len"
-        else genLine $ tshow $ getFixReqLength req
+        then genLine "$ fromIntegral len"
+        else genLine $ tshow getFixReqLength
 
+    -- Generate the second intended do block
     genReqDoArgs :: Builder
     genReqDoArgs = mconcat (map doReqArg apiNames)
       -- if available, return newly created object
@@ -169,13 +183,18 @@ genRequest ifacName req =
     doReqArg :: Text -> Builder
     doReqArg nam = indent 8 <> genLine ("put " <> nam)
 
+    -- Generate a where clause, if the request has arguments of type `WString`
+    --    and ` WArray` to calculate dynamically the length of the request
+    --    block on the wire.
     genReqDoWhere :: Builder
     genReqDoWhere =
         if needsWhere
-        then indent 2 <> genLine ("where len = " <> tshow  (getFixReqLength req) <>
+        then indent 2 <> genLine ("where len = " <> tshow  getFixReqLength <>
             " + sum (calcWStringLength <$> " <> tshow reqStringArgs <> ") " <>
             " + sum (calcWArrayLength  <$> " <> tshow reqArrayArgs  <> ") ")
         else fromText T.empty
+
+    -- Functions to dyanmically calculate the length field of the request block
 
     argLength4List :: [Text]  -- We store only types with length 4
     argLength4List = ["WInt", "WUint", "WFixed", "WObj", "WNewId"]
@@ -202,8 +221,8 @@ genRequest ifacName req =
 
     -- Calculate the fix part of the request length,
     -- all data without WString and WArray data type arguments
-    getFixReqLength :: WlRequest -> Int
-    getFixReqLength req = 8 + 4 * length (filter (`elem` argLength4List) types)
+    getFixReqLength :: Int
+    getFixReqLength = 8 + 4 * length (filter (`elem` argLength4List) types)
       where
         types = map argType $ reqArgs req
 

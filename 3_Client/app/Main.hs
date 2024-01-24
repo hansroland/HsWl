@@ -27,11 +27,11 @@ main = do
 -- ---------------------------------------------------------------------------
 runClient :: Socket.Socket -> ClMonad ()
 runClient serverSock = do
-    wlDisplayGetRegistry cWlRegistry
+    _ <- wlDisplayGetRegistry cWlRegistry
     setDisplayListener myDisplayListener
     setRegistryListener myRegistryListener
     setCallbackListener myCallbackListener
-    wlDisplaySync cWlCallback
+    _ <- wlDisplaySync cWlCallback
     sendRequests serverSock
     socketRead serverSock
 
@@ -108,17 +108,17 @@ myRegistryGlobal name interface version = do
     case interface of
       WString "wl_compositor" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER compositor"
-        rsxRegistryBind (fromIntegral name) interface version cWlCompositor
+        _ <- rsxRegistryBind (fromIntegral name) interface version cWlCompositor
         pure ()
 
       WString "wl_shm" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER wl_shm"
-        rsxRegistryBind (fromIntegral name) interface version cWlShm
+        _ <- rsxRegistryBind (fromIntegral name) interface version cWlShm
         pure ()
 
       WString "xdg_wm_base" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER xdg_wm_base"
-        rsxRegistryBind (fromIntegral name) interface version cXdgWmBase
+        _ <- rsxRegistryBind (fromIntegral name) interface version cXdgWmBase
         pure ()
 
       _ -> pure()
