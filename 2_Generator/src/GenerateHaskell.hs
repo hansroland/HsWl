@@ -7,6 +7,8 @@ import Data.List(intersperse)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Builder.Linear ( fromText, runBuilder, Builder )
+import Data.Tuple.Extra
+import Data.Maybe(mapMaybe)
 
 generateHaskell :: WlProtocol -> Text
 generateHaskell = runBuilder . genProtocol
@@ -33,7 +35,8 @@ genProtocol prot = genModuleHeader
     <> genLine "-- Generate the setter functions for the listeners" <> bnl
     <> genSetListeners interfaces <> bnl
     <> genLine "-- Function dispatchEvent" <> bnl
-    <> genDispatchEvent interfaces
+    <> genDispatchEvent interfaces <> bnl
+    <> genSupportFunctions
     <> bnl
   where
     interfaces = protInterfaces prot
@@ -55,6 +58,7 @@ genModuleHeader = genLine "{-# LANGUAGE OverloadedStrings #-}"
     <> genLine "import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)"
     <> genLine "import qualified Data.Text as T"
     <> genLine "import Data.Text (Text)"
+    <> genLine "import Data.List (find)"
     <> bnl
 
 -- Generate Monad
@@ -75,19 +79,19 @@ genInterfaceConst ifac =
 -- Request Handling
 -- ----------------------------------------------------------------------
 
--- | Generate the requests of an Interface
+-- | Generate all the requests of one Interface
 genReqInterface :: WlInterface -> Builder
 genReqInterface ifac =
   if hasRequests ifac
   then
     sectiontit ("Interface: " <> ifaName ifac <> " - " <> descrSummary (ifaDescr ifac)) <>
     bnl <>
-    genRequests (ifaRequests ifac)
+    genRequests (nameInterface ifac) (ifaRequests ifac)
   else
     fromText T.empty
 
-genRequests :: [WlRequest] -> Builder
-genRequests reqs = mconcat $ map genRequest reqs
+genRequests :: Text -> [WlRequest] -> Builder
+genRequests ifacname reqs = mconcat $ map (genRequest ifacname) reqs
 
 -- | Generate a single request
 --
@@ -97,80 +101,111 @@ genRequests reqs = mconcat $ map genRequest reqs
 -- >     put $ WOpc 0
 -- >     putWord16host 12
 -- >     put callback
-genRequest :: WlRequest -> Builder
-genRequest req = funtit ("Req: " <> descrSummary (reqDescr req) <> " opc:" <> tshow (reqOpc req)) <>
-                 fromText (reqName req) <> genReqType req <>
-                 fromText (reqName req) <> genReqBody req
-
-genReqType :: WlRequest -> Builder
-genReqType req = genLine $ " :: " <> "WObj -> " <> mconcat types
+genRequest :: Text -> WlRequest -> Builder
+genRequest ifacName req =
+  funtit ("Req: " <> descrSummary (reqDescr req) <> " opc:" <> tshow (reqOpc req)) <>
+      fromText (reqName req) <> genReqType <>
+      fromText (reqName req) <> genReqBody
   where
-    types = intersperse " -> " (map argType (reqArgs req) <> ["BS.ByteString"])
+    xmlTypes = argType <$> reqArgs req      -- original argument types
+    xmlNames = argName <$> reqArgs req      -- original argument names
 
-genReqBody :: WlRequest -> Builder
-genReqBody req = fromText (" wobj " <> args  <> " = ")
-               <> genReqDoHeader req
-               <> genReqDoArgs req
-               <> genReqDoWhere req
+    -- A list of pairs describing the argument
+    --fst is type, snd is argName
+    xmlArgPairs :: [(Text, Text)]
+    xmlArgPairs = zip xmlTypes xmlNames
+    nameTypeTriples = replTripple <$> xmlArgPairs
+    replTripple :: (Text, Text) -> (Text, Text, Maybe Text)
+    replTripple ("WNewId", name) =
+            ("Text", name <> "'", Just name)
+    replTripple (ty, nm ) = (ty, nm, Nothing)
+    apiTypes = fst3 <$> nameTypeTriples              -- new api type names
+    apiNames = snd3 <$> nameTypeTriples              -- new api argument names
+    changedXmlNames = mapMaybe thd3 nameTypeTriples  -- changed name(s) (zero or one)
+    changedXmlName = head changedXmlNames            -- argument name to change
+    changedApiName = changedXmlName <> "'"           -- changed argument name
+
+    -- Generate the type annotation for the request
+    genReqType :: Builder
+    genReqType = genLine $ " :: "  <> mconcat itypes
+      where
+        itypes = intersperse " -> " (apiTypes <> [retValue])
+        retValue =
+          if hasWNewIdArg
+          then "ClMonad WObj"
+          else "ClMonad ()"
+
+    genReqBody :: Builder
+    genReqBody
+        = fromText (" " <> T.intercalate " " xmlNames <> " = ")
+               <> genReqDoHeader
+               <> genReqDoArgs
+               <> genReqDoWhere
                <> bnl
-  where
-    args = mconcat $ intersperse " "  (map argName (reqArgs req))
+      where
+        args = mconcat $ intersperse " " apiNames
 
+    genReqDoHeader :: Builder
+    genReqDoHeader = genLine "do" <>
+        indent 4 <> genLine ("wobj <- getObjectId " <> ifacName)  <>
+        (if null changedXmlNames
+          then fromText ""
+          else indent 4 <> genLine (changedApiName <> " <- createNewId " <> changedXmlName))
+        <> indent 4 <> genLine "addRequest $ runByteString $ do" <>
+        indent 8 <> genLine "put wobj"  <>
+        indent 8 <> genLine ("put $ WOpc " <> tshow (reqOpc req)) <>
+        indent 8 <> fromText "putWord16host " <>
+        if needsWhere
+        then genLine " $ fromIntegral len"
+        else genLine $ tshow $ getFixReqLength req
 
-genReqDoHeader :: WlRequest -> Builder
-genReqDoHeader req = genLine "runByteString $ do" <>
-      indent 4 <> genLine "put wobj"  <>
-      indent 4 <> genLine ("put $ WOpc " <> tshow (reqOpc req)) <>
-      indent 4 <> fromText "putWord16host " <>
-      if needsWhere req
-      then genLine " $ fromIntegral len"
-      else genLine $ tshow $ getFixReqLength req
+    genReqDoArgs :: Builder
+    genReqDoArgs = mconcat (map doReqArg apiNames)
+      -- if available, return newly created object
+      <> (if null changedXmlNames
+          then fromText ""
+          else indent 4 <> genLine ("pure " <> changedApiName))
 
-genReqDoArgs :: WlRequest -> Builder
-genReqDoArgs req = mconcat $ map doReqArg (reqArgs req)
+    doReqArg :: Text -> Builder
+    doReqArg nam = indent 8 <> genLine ("put " <> nam)
 
-doReqArg :: WlArgument -> Builder
-doReqArg arg = indent 4 <> genLine ("put " <> argName arg)
+    genReqDoWhere :: Builder
+    genReqDoWhere =
+        if needsWhere
+        then indent 2 <> genLine ("where len = " <> tshow  (getFixReqLength req) <>
+            " + sum (calcWStringLength <$> " <> tshow reqStringArgs <> ") " <>
+            " + sum (calcWArrayLength  <$> " <> tshow reqArrayArgs  <> ") ")
+        else fromText T.empty
 
-genReqDoWhere :: WlRequest -> Builder
-genReqDoWhere req =
-    if needsWhere req
-    then indent 2 <> genLine ("where len = " <> tshow (getFixReqLength req) <>
-           " + sum (calcWStringLength <$> " <> tshow (reqStringArgs req) <> ") " <>
-           " + sum (calcWArrayLength  <$> " <> tshow (reqArrayArgs req)  <> ") ")
-    else fromText T.empty
+    argLength4List :: [Text]  -- We store only types with length 4
+    argLength4List = ["WInt", "WUint", "WFixed", "WObj", "WNewId"]
 
-argLength4List :: [Text]  -- We store only types with length 4
-argLength4List = ["WInt", "WUint", "WFixed", "WObj", "WNewId"]
+    -- A list of the names of the arguments with type WString
+    reqStringArgs :: [Text]
+    reqStringArgs = snd <$> filter (\(t,_) -> t == "WString" ) xmlArgPairs
 
--- A list of pairs describing the argument
---fst is type, snd is argName
-reqArgPairs :: WlRequest -> [(Text, Text)]
-reqArgPairs req = zip (argType <$> reqArgs req) (argName <$> reqArgs req)
+    -- A list of the names of the arguments with type WArray
+    reqArrayArgs :: [Text]
+    reqArrayArgs = snd <$> filter (\(t,_) -> t == "WArray" ) xmlArgPairs
 
--- A list of the names of the arguments with type WString
-reqStringArgs :: WlRequest -> [Text]
-reqStringArgs req = snd <$> filter (\(t,_) -> t == "WString" ) (reqArgPairs req)
+    needsWhere :: Bool
+    needsWhere = hasStringArgs || hasArrayArgs
 
--- A list of the names of the arguments with type WArray
-reqArrayArgs :: WlRequest -> [Text]
-reqArrayArgs req = snd <$> filter (\(t,_) -> t == "WArray" ) (reqArgPairs req)
+    hasStringArgs :: Bool
+    hasStringArgs = not $ null reqStringArgs
 
-needsWhere :: WlRequest -> Bool
-needsWhere req = hasStringArgs req || hasArrayArgs req
+    hasArrayArgs :: Bool
+    hasArrayArgs = not $ null reqArrayArgs
 
-hasStringArgs :: WlRequest -> Bool
-hasStringArgs req = not $ null $ reqStringArgs req
+    hasWNewIdArg ::Bool
+    hasWNewIdArg = "WNewId" `elem` xmlTypes
 
-hasArrayArgs :: WlRequest -> Bool
-hasArrayArgs req = not $ null $ reqArrayArgs req
-
--- Calculate the fix part of the request length,
--- all data without WString and WArray data type arguments
-getFixReqLength :: WlRequest -> Int
-getFixReqLength req = 8 + 4 * length (filter (`elem` argLength4List) types)
-  where
-    types = map argType $ reqArgs req
+    -- Calculate the fix part of the request length,
+    -- all data without WString and WArray data type arguments
+    getFixReqLength :: WlRequest -> Int
+    getFixReqLength req = 8 + 4 * length (filter (`elem` argLength4List) types)
+      where
+        types = map argType $ reqArgs req
 
 -- ----------------------------------------------------------------------
 -- Event Handling
@@ -394,6 +429,34 @@ genDispatchEventEnd :: Builder
 genDispatchEventEnd =
   indent 8 <> genLine "_ ->  error (\"dispatchEvent: No case for interface object \" <> T.unpack ifName)"
       <> bnl
+
+-- * Generate Support functions
+genSupportFunctions :: Builder
+genSupportFunctions =
+  genLine "-- Create a new Id"
+  <> genLine "createNewId :: Text -> ClMonad WNewId"
+  <> genLine "createNewId txt = do"
+  <> indent 4 <> genLine "st <- ST.get"
+  <> indent 4 <> genLine "let usedObj = map fst $ clActiveIfaces st"
+  <> indent 8 <> genLine "newObj = head $ filter(`notElem` usedObj) [1..]"
+  <> indent 8 <> genLine "newActives = (newObj, txt) : clActiveIfaces st"
+  <> indent 4 <> genLine "ST.liftIO $ putStrLn (\"CREATE new WOBJ for \" <> T.unpack txt <> \": \" <> show newObj)"
+  <> indent 4 <> genLine "ST.put $ st { clActiveIfaces = newActives }"
+  <> indent 4 <> genLine "pure $ fromIntegral newObj" <> bnl
+
+  <> genLine "-- Add a request to the queue"
+  <> genLine "addRequest :: BS.ByteString -> ClMonad ()"
+  <> genLine "addRequest bs = do"
+  <> indent 4 <> genLine "st <- ST.get"
+  <> indent 4 <> genLine "ST.liftIO $ putStrLn $ \"Add Request: \" <> toHexString bs"
+  <> indent 4 <> genLine "ST.put $ st {clReqs = bs : clReqs st}" <> bnl
+
+  <> genLine "-- Get an WObj from the interface text name"
+  <> genLine "getObjectId :: Text -> ClMonad WObj"
+  <> genLine "getObjectId txt = do"
+  <> indent 4 <> genLine "st <- ST.get"
+  <> indent 4 <> genLine "pure $ fst $ fromMaybe (0, T.empty) (find ((==) txt . snd ) (clActiveIfaces st))"
+
 
 -- --------------------------------------------------------------------
 -- Helper Functions to Generate Names

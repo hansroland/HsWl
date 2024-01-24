@@ -27,7 +27,8 @@ instance Binary WObj where
     put (WObj n) = putWord32host n
     get = WObj <$> getWord32host
 
-
+type WNewId = WObj
+{-
 newtype WNewId = WNewId Word32
     deriving (Eq, Ord, Enum, Num)
     deriving newtype (Read, Show, Integral, Real)
@@ -35,7 +36,7 @@ newtype WNewId = WNewId Word32
 instance Binary WNewId where
     put (WNewId n) = putWord32host n
     get = WNewId <$> getWord32host
-
+-}
 newtype WOpc = WOpc Word16
     deriving (Eq, Ord, Enum, Num)
     deriving newtype (Read, Show, Integral, Real)
@@ -99,6 +100,15 @@ instance Binary WArray where
 
 
 type IfacKey = (WObj, Text)
+
+-- | printActiveIfaces - for debugging
+printActiveIfaces :: [IfacKey] -> IO ()
+printActiveIfaces keys = do
+    putStrLn ("ACTIVE Interfaces: " <> concatMap showIfac keys)
+  where
+    showIfac :: IfacKey -> String
+    showIfac (obj, txt ) = "(" <> show obj <> ", "  <> T.unpack txt  <> ")"
+
 
 parseWString :: Get WString
 parseWString = do

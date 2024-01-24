@@ -34,29 +34,6 @@ import Text.Printf
 import Data.List
 import Control.Monad.State.Strict
 
-
-createNewId :: Text -> ClMonad WNewId
-createNewId txt = do
-    st <- get
-    let usedObj = map fst $ clActiveIfaces st
-        newObj = head $ filter(`notElem` usedObj) [1..]
-        newActives = (newObj, txt) : clActiveIfaces st
-    liftIO $ putStrLn ("CREATE new WOBJ for " <> T.unpack txt <> ": " <> show newObj)
-    put $ st { clActiveIfaces = newActives }
-    pure $ fromIntegral newObj
-
-addRequest :: BS.ByteString -> ClMonad ()
-addRequest bs = do
-    st <- get
-    liftIO $ putStrLn $ "Add Request: " <> (toHexString . BL.fromChunks . return) bs
-    put $ st {clReqs = bs : clReqs st}
-
--- Get an WObj from the interface text name
-getObjectId :: Text -> ClMonad WObj
-getObjectId txt = do
-    st <- get
-    pure $ fst $ fromMaybe (0, T.empty) (find ((==) txt . snd ) (clActiveIfaces st))
-
 -- --------------------------------------------------------------------
 
 splitMsgs :: BL.ByteString -> [BL.ByteString]
@@ -149,11 +126,6 @@ sigHandler sig var = do
         else SigChld
     STM.atomically $ STM.putTMVar var e
 
-toHexText :: BL.ByteString -> Text
-toHexText =  T.pack . toHexString
-
-toHexString :: BL.ByteString -> String
-toHexString = BL.foldr ((<>) . printf "%02x") ""
 
 socketRead :: Socket.Socket -> ClMonad ()
 socketRead serverSock = do

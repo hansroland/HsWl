@@ -15,6 +15,7 @@ import Shm
 import qualified Network.Socket             as Socket
 import qualified Control.Monad.State.Strict as ST
 import qualified Data.Text.IO               as TIO
+import Wire (cWlRegistry, cWlCallback, cXdgToplevel, cXdgSurface, cWlCompositor, cWlShm, cXdgWmBase)
 
 main :: IO ()
 main = do
@@ -27,11 +28,11 @@ main = do
 -- ---------------------------------------------------------------------------
 runClient :: Socket.Socket -> ClMonad ()
 runClient serverSock = do
-    displayGetRegistry
+    wlDisplayGetRegistry cWlRegistry
     setDisplayListener myDisplayListener
     setRegistryListener myRegistryListener
     setCallbackListener myCallbackListener
-    displaySync
+    wlDisplaySync cWlCallback
     sendRequests serverSock
     socketRead serverSock
 
@@ -54,11 +55,11 @@ runClient serverSock = do
     setgWmBaseListener myXdgWmBaseListener
     setgToplevelListener myXdgToplevelListener
     setgSurfaceListener myXdgSurfaceListener
-    surface <- compositorCreateSurface
-    xdgSurface <- xdgGetXdgSurface surface
-    topLevel <- surfaceAssignToplevel        -- xdgSurface
-    toplevelSetTitle $ WString "Example client"
-    surfaceCommit
+    surface <- wlCompositorCreateSurface cWlSurface
+    xdgSurface <- xdgWmBaseGetXdgSurface cXdgSurface surface
+    topLevel <- xdgSurfaceGetToplevel cXdgToplevel
+    xdgToplevelSetTitle $ WString "Example client"
+    wlSurfaceCommit
     sendRequests serverSock
     socketRead serverSock
 
@@ -108,15 +109,19 @@ myRegistryGlobal name interface version = do
     case interface of
       WString "wl_compositor" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER compositor"
-        bindToInterface (fromIntegral name) interface version
+        rsxRegistryBind (fromIntegral name) interface version cWlCompositor
+        pure ()
 
       WString "wl_shm" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER wl_shm"
-        bindToInterface (fromIntegral name) interface version
+        rsxRegistryBind (fromIntegral name) interface version cWlShm
+        pure ()
 
       WString "xdg_wm_base" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER xdg_wm_base"
-        bindToInterface (fromIntegral name) interface version
+        rsxRegistryBind (fromIntegral name) interface version cXdgWmBase
+        pure ()
+
       _ -> pure()
 
     pure ()
@@ -155,7 +160,7 @@ myXdgWmBaseListener = XdgWmBaseListener (Just myXdgWmBasePing)
 myXdgWmBasePing :: TxdgWmBasePing
 myXdgWmBasePing serial = do
   ST.liftIO $ putStrLn "Received xdg_wm_base_ping"
-  xdgSendPongAnswer serial
+  xdgWmBasePong serial
 
 -- --------------------------------------------------------------------
 
@@ -177,7 +182,7 @@ myXdgSurfaceListener = XdgSurfaceListener (Just myXdgSurfaceConfigure)
 myXdgSurfaceConfigure :: TxdgSurfaceConfigure
 myXdgSurfaceConfigure serial = do
   ST.liftIO $ putStrLn "Received XdgToplevelConfigure event"
-  surfaceAckConfigure serial
+  xdgSurfaceAckConfigure serial
 
 {-
     printf ("RSX xdg_surface_configure\n");
@@ -207,9 +212,9 @@ drawFrame {-shm-} = do
   memAddr <- mmap nullPtr (fromIntegral size)
             (cPROT_READ + cPROT_WRITE) cMAP_SHARED (fromIntegral fd) 0
   myPutStrLn (" memAddr " ++ show memAddr ++ " " ++ show cMAP_FAILED)
-  shmPool <- shmCreatePool shm (fromIntegral fd) (fromIntegral size)
+  shmPool <- wlShmCreatePool shm (fromIntegral fd) (fromIntegral size)
 
-  buffer <- shmPoolCreateBuffer shmPool 0
+  buffer <- wlShmPoolCreateBuffer shmPool 0
             (fromIntegral width) (fromIntegral height) (fromIntegral stride) wL_SHM_FORMAT_XRGB8888
   shmPoolDestroy shmPool
   closeFd fd

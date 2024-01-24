@@ -16,6 +16,8 @@ import qualified Data.ByteString            as BS
 import qualified Data.Text                  as T
 import qualified Data.Text.IO               as TIO
 
+import Text.Printf
+
 -- TODO move to Types, define a Binary instance
 putFd :: WFd -> Put
 putFd  _ = putByteString BS.empty
@@ -52,18 +54,8 @@ parseWArray = error "parseWArray is not yet defined in WireSupport"
 initActiveIfaces :: [IfacKey]
 initActiveIfaces = [ (1, "wl_display")]
 
-    -- Note the wlRegistryBind function in the xml file is wrong
-rsxRegistryBind :: WObj -> WUint -> WString -> WUint -> WNewId -> BS.ByteString
-rsxRegistryBind wobj name interface version xid = runByteString $ do
-   put wobj
-   put $ WOpc 0
-   putWord16host $ fromIntegral $ 20 + calcWStringLength interface
-   put name
-   put interface
-   put version
-   put xid
+toHexText :: BL.ByteString -> Text
+toHexText =  T.pack . toHexString
 
-
-
-
-
+toHexString :: BL.ByteString -> String
+toHexString = BL.foldr ((<>) . printf "%02x") ""
