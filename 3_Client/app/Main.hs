@@ -3,7 +3,7 @@
 module Main where
 
 
-import Wire
+import Protocol
 -- import Mayland
 
 
@@ -15,7 +15,6 @@ import Shm
 import qualified Network.Socket             as Socket
 import qualified Control.Monad.State.Strict as ST
 import qualified Data.Text.IO               as TIO
-import Wire (cWlRegistry, cWlCallback, cXdgToplevel, cXdgSurface, cWlCompositor, cWlShm, cXdgWmBase)
 
 main :: IO ()
 main = do

@@ -16,7 +16,7 @@ main = do
     -- TODO Add check for empty input
     prots <- mapM readXmlFile ["wayland", "xdg-shell" ]
     oks <- checkRead prots
-    TIO.writeFile "Wire.hs" $ generateHaskell $ concatProts oks
+    TIO.writeFile "Protocol.hs" $ generateHaskell $ concatProts oks
 
 -- Read a single XML file
 readXmlFile:: String -> IO (Maybe WlProtocol)

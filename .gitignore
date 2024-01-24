@@ -22,3 +22,4 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 client
+./2_Generator/Protocol.hs

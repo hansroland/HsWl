@@ -3,13 +3,13 @@
 module ClientSupport
 where
 
-import Wire
+import Protocol
 -- import Mayland
 
 
 import Types
 import WaylandSocket
-import WireSupport ( parseWObj, parseWOpc)
+import ProtocolSupport ( parseWObj, parseWOpc)
 
 import Data.Binary.Get
 

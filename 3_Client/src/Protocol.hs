@@ -2,9 +2,9 @@
 
 -- *** ATTENTION *** Generated Code *** DO NOT MODIFY
 
-module Wire where
+module Protocol where
 import Types
-import WireSupport
+import ProtocolSupport
 
 import Data.Binary
 import Data.Binary.Put

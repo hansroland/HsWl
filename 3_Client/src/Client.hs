@@ -3,8 +3,8 @@
 module Client where
 
 import ClientSupport
-import Wire
-import WireSupport
+import Protocol
+import ProtocolSupport
 
 import Types
 import WaylandSocket

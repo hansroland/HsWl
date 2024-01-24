@@ -45,9 +45,9 @@ genProtocol prot = genModuleHeader
 genModuleHeader :: Builder
 genModuleHeader = genLine "{-# LANGUAGE OverloadedStrings #-}"
     <> bnl <> genLine "-- *** ATTENTION *** Generated Code *** DO NOT MODIFY" <> bnl
-    <> genLine "module Wire where"
+    <> genLine "module Protocol where"
     <> genLine "import Types"
-    <> genLine "import WireSupport" <> bnl
+    <> genLine "import ProtocolSupport" <> bnl
     <> genLine "import Data.Binary"
     <> genLine "import Data.Binary.Put"
     <> genLine "import Data.Binary.Get" <> bnl

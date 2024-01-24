@@ -20,8 +20,8 @@ library
     import:           warnings
     exposed-modules:  Client
                       , Types
-                      , Wire
-                      , WireSupport
+                      , Protocol
+                      , ProtocolSupport
                       , ClientSupport
                       , Shm
     other-modules:    WaylandSocket
