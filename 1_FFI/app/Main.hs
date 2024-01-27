@@ -7,10 +7,12 @@ module Main where
 import ClientState
 import WaylandADTs
 import Client
-import Control.Monad ( when )
-import Foreign.Ptr (nullPtr, castPtr)
+import Control.Monad ( when, forM_ )
+import Foreign (ForeignPtr, nullPtr, castPtr, newForeignPtr_, withForeignPtr, newForeignPtr_, pokeElemOff)
 import System.Posix.IO ( closeFd )
 import Foreign.C.String ( peekCString )
+import Data.Word (Word32)
+
 
 -- Bind callbacks in the registry
 registryGlobalHandler :: FunRegistryListenerGlobal
@@ -91,6 +93,8 @@ drawFrame shm = do
   fd <- allocateShmFile size
   memAddr <- mmap nullPtr (fromIntegral size)
             (cPROT_READ + cPROT_WRITE) cMAP_SHARED (fromIntegral fd) 0
+  foreignPtr <- newForeignPtr_ memAddr
+  fillBuffer foreignPtr width height
   myPutStrLn (" memAddr " ++ show memAddr ++ " " ++ show cMAP_FAILED)
   shmPool <- shmCreatePool shm (fromIntegral fd) (fromIntegral size)
   buffer <- shmPoolCreateBuffer shmPool 0
@@ -104,6 +108,22 @@ drawFrame shm = do
   bufferAddListener buffer bufListener
   --
   pure buffer
+
+fillBuffer :: ForeignPtr Word32 -> Int -> Int ->IO ()
+fillBuffer ptr width heigth = do
+    withForeignPtr ptr $ \p ->
+      forM_ [0..heigth-1] $ \y ->
+        forM_ [0..width-1] $ \x ->
+          pokeElemOff p (x + y * width) (calcColor x y)       -- color value
+    pure ()
+
+calcColor :: Int -> Int -> Word32
+calcColor x y =
+  let ex = even (x `div` 10)
+      ey = even (y `div` 10)
+  in if (ex && ey) || (not ex && not ey)
+      then 0XFF00FFFF
+      else 0XFFFF0000
 
 ---
 main :: IO ()

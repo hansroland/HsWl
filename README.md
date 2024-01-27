@@ -23,8 +23,7 @@ This directory contains a more or less simple translation of the code in the `Bo
 
 #### Status
 
-At the moment, the code up to the extended example has been translated to Haskell. However the checkerboard background has not been implemented.
-
+At the moment, the code up to the extended example has been translated to Haskell.
 
 ## 2_Generator
 

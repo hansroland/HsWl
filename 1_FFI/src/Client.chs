@@ -70,6 +70,7 @@ import WaylandADTs
 
 import Test.RandomStrings
 
+import Foreign
 import Foreign.C.String
 import Foreign.Ptr (Ptr, FunPtr, nullPtr)
 import Foreign.Storable
@@ -226,10 +227,10 @@ foreign import capi "wayland-client.h wl_buffer_destroy"
 -- Posix memory mapping
 -- --------------------------------------------------------------------
 foreign import ccall "mmap"                       -- Using ccall results in a warning
-   mmap :: Ptr () -> C2HSImp.CSize -> C2HSImp.CInt -> C2HSImp.CInt-> Fd-> C2HSImp.CInt -> IO (Ptr ())
+   mmap :: Ptr () -> C2HSImp.CSize -> C2HSImp.CInt -> C2HSImp.CInt-> Fd-> C2HSImp.CInt -> IO (Ptr a)
 
 foreign import ccall "munmap"                     -- Using ccall results in a warning
-   munmap :: Ptr () -> C2HSImp.CSize -> IO ()
+   munmap :: Ptr a -> C2HSImp.CSize -> IO ()
 
 cPROT_EXEC = 4
 cPROT_EXEC :: (Num a) => a
