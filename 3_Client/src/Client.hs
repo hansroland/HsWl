@@ -2,13 +2,13 @@
 
 module Client where
 
-import ClientSupport
+-- import ClientSupport
 import Protocol
 import ProtocolSupport
 
 import Types
 import WaylandSocket
-import Shm
+-- import Shm
 
 import qualified Data.Binary                as BP
 import qualified Data.Binary.Put            as BP
@@ -18,6 +18,7 @@ import qualified Network.Socket             as Socket
 import qualified Data.ByteString            as BS
 import           Control.Monad.State.Strict
 import qualified Data.Text as T
+import Protocol (ClState(clActiveIfaces))
 
 
 -- Note the wlRegistryBind function in the xml file is wrong
@@ -53,6 +54,7 @@ sendRequests serverSock = do
     reqs <- collectRequests
     _ <- liftIO $ sendToWayland serverSock reqs []
     st <- get
+    -- liftIO $ printActiveIfaces (clActiveIfaces st)
     put st {clReqs = []}
   where
     collectRequests :: ClMonad BS.ByteString

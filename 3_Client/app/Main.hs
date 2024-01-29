@@ -15,6 +15,11 @@ import Shm
 import qualified Network.Socket             as Socket
 import qualified Control.Monad.State.Strict as ST
 import qualified Data.Text.IO               as TIO
+import Protocol (TwlBufferRelease, wlBufferDestroy, setBufferListener)
+
+import Foreign (ForeignPtr, nullPtr, withForeignPtr, newForeignPtr_, pokeElemOff)
+import Data.Word (Word32)
+import Control.Monad
 
 main :: IO ()
 main = do
@@ -35,18 +40,8 @@ runClient serverSock = do
     sendRequests serverSock
     socketRead serverSock
 
-{-
-    state.wl_surface = wl_compositor_create_surface(state.wl_compositor);
-    state.xdg_surface = xdg_wm_base_get_xdg_surface(
-            state.xdg_wm_base, state.wl_surface);
-    printf ("RSX Before xdg_surface_add_listener\n");
-    xdg_surface_add_listener(state.xdg_surface, &xdg_surface_listener, &state);
-    printf ("RSX Before xdg_surface_get_toplevel\n");
-    state.xdg_toplevel = xdg_surface_get_toplevel(state.xdg_surface);
-    xdg_toplevel_set_title(state.xdg_toplevel, "Example client");
-    printf ("RSX Before wl_surface_commit\n");
-    wl_surface_commit(state.wl_surface);
--}
+    -- https://gitlab.freedesktop.org/wayland/wayland/-/blob/main/src/wayland-shm.c?ref_type=heads
+    -- https://en.m.wikipedia.org/wiki/Unix_domain_socket
 
 
     setShmListener myShmListener
@@ -54,13 +49,25 @@ runClient serverSock = do
     setgWmBaseListener myXdgWmBaseListener
     setgToplevelListener myXdgToplevelListener
     setgSurfaceListener myXdgSurfaceListener
+    setBufferListener myBufferListener
     surface <- wlCompositorCreateSurface cWlSurface
     xdgSurface <- xdgWmBaseGetXdgSurface cXdgSurface surface
     topLevel <- xdgSurfaceGetToplevel cXdgToplevel
     xdgToplevelSetTitle $ WString "Example client"
     wlSurfaceCommit
-    sendRequests serverSock
-    socketRead serverSock
+
+    let loop = do
+          ST.liftIO $ putStrLn "Send - Read Loop"
+          sendRequests serverSock
+          socketRead serverSock
+          loop
+
+    _ <- loop
+
+    -- TODO a nice disconnect from the server
+    -- wlDisplayDisconnect ptrDisplay
+    ST.liftIO $ putStrLn "disconnected!"
+
 
     return ()
 
@@ -158,10 +165,18 @@ myXdgWmBaseListener = XdgWmBaseListener (Just myXdgWmBasePing)
 
 myXdgWmBasePing :: TxdgWmBasePing
 myXdgWmBasePing serial = do
-  ST.liftIO $ putStrLn "Received xdg_wm_base_ping"
+  ST.liftIO $ putStrLn "XDG PING Called"
   xdgWmBasePong serial
 
 -- --------------------------------------------------------------------
+
+myBufferListener :: WlBufferListener
+myBufferListener = WlBufferListener (Just myWlBufferRelease)
+
+myWlBufferRelease :: TwlBufferRelease
+myWlBufferRelease = do
+  ST.liftIO $ putStrLn "Received wl_buffer_destroy event"
+  wlBufferDestroy
 
 
 -- Define callback functions for the xdg_toplevel object
@@ -180,24 +195,17 @@ myXdgSurfaceListener = XdgSurfaceListener (Just myXdgSurfaceConfigure)
 
 myXdgSurfaceConfigure :: TxdgSurfaceConfigure
 myXdgSurfaceConfigure serial = do
-  ST.liftIO $ putStrLn "Received XdgToplevelConfigure event"
+  ST.liftIO $ putStrLn "XDGConfigureHandler called"
   xdgSurfaceAckConfigure serial
-
-{-
-    printf ("RSX xdg_surface_configure\n");
-    struct client_state *state = data;
-    xdg_surface_ack_configure(xdg_surface, serial);
-
-    struct wl_buffer *buffer = draw_frame(state);
-    wl_surface_attach(state->wl_surface, buffer, 0, 0);
-    wl_surface_commit(state->wl_surface);
--}
-
+  buffer <- drawFrame
+  _ <- wlSurfaceAttach buffer 0 0
+  wlSurfaceCommit
+  pure ()
 
 -- --------------------------------------------------------------------
 -- Create and fill a buffer
 -- --------------------------------------------------------------------
-drawFrame :: {-PtrShm -> -} ClMonad ()
+drawFrame :: ClMonad WObj
 drawFrame {-shm-} = do
   ST.liftIO $ putStrLn "drawFrame active"
   let width  = 640 :: Int
@@ -205,26 +213,32 @@ drawFrame {-shm-} = do
       stride = width * (4 :: Int)              -- 2560
       size   = stride * height                 -- 1228800  x'012C00'
 
-  -- Put this part into the shmCreatePool function  memAddr must be stored somewhere
   fd <- ST.liftIO $ allocateShmFile size
-  {-
-  memAddr <- mmap nullPtr (fromIntegral size)
+  memAddr <- ST.liftIO $ mmap nullPtr (fromIntegral size)
             (cPROT_READ + cPROT_WRITE) cMAP_SHARED (fromIntegral fd) 0
-  myPutStrLn (" memAddr " ++ show memAddr ++ " " ++ show cMAP_FAILED)
-  shmPool <- wlShmCreatePool shm (fromIntegral fd) (fromIntegral size)
-
-  buffer <- wlShmPoolCreateBuffer shmPool 0
+  fmemAddr <- ST.liftIO $ newForeignPtr_ memAddr
+  ST.liftIO $ fillBuffer fmemAddr width height
+  -- myPutStrLn (" memAddr " ++ show memAddr ++ " " ++ show cMAP_FAILED)
+  shmPool <- wlShmCreatePool cWlShmPool (fromIntegral fd) (fromIntegral size)
+  buffer <- wlShmPoolCreateBuffer cWlBuffer 0
             (fromIntegral width) (fromIntegral height) (fromIntegral stride) wL_SHM_FORMAT_XRGB8888
-  shmPoolDestroy shmPool
-  closeFd fd
-  munmap memAddr (fromIntegral size)
-
-
-  -- wl_buffer_add_listener(buffer, &wl_buffer_listener, NULL);
-  bufHandler <- wrapBufferHandler bufferReleaseHandler
-  let bufListener = BufferListenerData {release = bufHandler}
-  bufferAddListener buffer bufListener
-  --
+  wlShmPoolDestroy
+  ST.liftIO $ closeShmFile fd
+  ST.liftIO $ munmap memAddr (fromIntegral size)
   pure buffer
- -}
-  pure ()
+
+fillBuffer :: ForeignPtr Word32 -> Int -> Int ->IO ()
+fillBuffer ptr width heigth = do
+    withForeignPtr ptr $ \p ->
+      forM_ [0..heigth-1] $ \y ->
+        forM_ [0..width-1] $ \x ->
+          pokeElemOff p (x + y * width) (calcColor x y)       -- color value
+    pure ()
+
+calcColor :: Int -> Int -> Word32
+calcColor x y =
+  let ex = even (x `div` 10)
+      ey = even (y `div` 10)
+  in if (ex && ey) || (not ex && not ey)
+      then 0XFF00FFFF
+      else 0XFFFF0000
