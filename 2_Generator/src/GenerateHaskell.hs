@@ -59,6 +59,7 @@ genModuleHeader = genLine "{-# LANGUAGE OverloadedStrings #-}"
     <> genLine "import qualified Data.Text as T"
     <> genLine "import Data.Text (Text)"
     <> genLine "import Data.List (find)"
+    <> genLine "import System.Posix.Types (Fd)"
     <> bnl
 
 -- Generate Monad
@@ -95,7 +96,7 @@ genRequests ifacname reqs = mconcat $ map (genRequest ifacname) reqs
 
 -- | Generate a single request
 --
--- wlShmCreatePool :: Text -> WFd -> WInt -> ClMonad WObj
+-- wlShmCreatePool :: Text -> Fd -> WInt -> ClMonad WObj
 -- wlShmCreatePool xid fd size = do
 --     wobj <- getObjectId cWlShm
 --     xid' <- createNewId xid                      <--------
@@ -163,7 +164,13 @@ genRequest ifacName req =
         indent 4 <> genLine ("wobj <- getObjectId " <> ifacName)  <>
         (if null changedXmlNames
           then fromText ""
-          else indent 4 <> genLine (changedApiName <> " <- createNewId " <> changedXmlName))
+          else indent 4 <> genLine (changedApiName <> " <- createNewId " <> changedXmlName)) <>
+
+        (if hasFd
+        then indent 4 <> genLine "addFd fd"
+        else fromText "")
+
+
         <> indent 4 <> genLine "addRequest $ runByteString $ do" <>
         indent 8 <> genLine "put wobj"  <>
         indent 8 <> genLine ("put $ WOpc " <> tshow (reqOpc req)) <>
@@ -216,8 +223,11 @@ genRequest ifacName req =
     hasArrayArgs :: Bool
     hasArrayArgs = not $ null reqArrayArgs
 
-    hasWNewIdArg ::Bool
+    hasWNewIdArg :: Bool
     hasWNewIdArg = "WNewId" `elem` xmlTypes
+
+    hasFd :: Bool
+    hasFd = "Fd" `elem` xmlTypes
 
     -- Calculate the fix part of the request length,
     -- all data without WString and WArray data type arguments
@@ -333,15 +343,17 @@ genClStateDataListener ifac =
 genClStateDataEnd :: Builder
 genClStateDataEnd = indent 4 <>
     genLine "clActiveIfaces :: [IfacKey],"
-    <> indent 4 <> genLine "clReqs :: [BS.ByteString] }"
+    <> indent 4 <> genLine "clReqs :: [BS.ByteString],"
+    <> indent 4 <> genLine "clFds :: [Fd]}"
 
 -- Generate the initialization function for the ClState data structure
 -- > initClState :: ClState
 -- > initClState = ClState {
 -- >     clRegistryListener = Nothing
 -- >     < more of the above lines for each interface>
--- >     clActiveIfaces = initActiveIfaces
--- >     clReqs = []  }
+-- >     clActiveIfaces = initActiveIfaces,
+-- >     clReqs = [],
+-- >     clFds = []}
 
 genClStateInit ::  [WlInterface] -> Builder
 genClStateInit ifacs = genClStateInitHeader
@@ -360,7 +372,9 @@ genClStateInitListener ifac =
 genClStateInitEnd :: Builder
 genClStateInitEnd = {- bnl <> -}
         indent 4 <> genLine "clActiveIfaces = initActiveIfaces,"
-        <> indent 4 <> genLine "clReqs = [] }"
+        <> indent 4 <> genLine "clReqs = [],"
+        <> indent 4 <> genLine "clFds = []}"
+        <> bnl
 
 
 -- Generate the setter functions for all listeners
@@ -469,6 +483,13 @@ genSupportFunctions =
   <> indent 4 <> genLine "st <- ST.get"
   <> indent 4 <> genLine "ST.liftIO $ putStrLn $ \"Add Request: \" <> toHexString bs"
   <> indent 4 <> genLine "ST.put $ st {clReqs = bs : clReqs st}" <> bnl
+
+  <> genLine "-- Add a FileDescriptor to the state. Goes into the ancillary data of the socket"
+  <> genLine "addFd :: Fd -> ClMonad ()"
+  <> genLine "addFd fd = do"
+  <> indent 4 <> genLine "st <- ST.get"
+  <> indent 4 <> genLine "ST.liftIO $ putStrLn $ \"Add Fd: \" <> show fd"
+  <> indent 4 <> genLine "ST.put $ st {clFds = fd : clFds st}" <> bnl
 
   <> genLine "-- Get an WObj from the interface text name"
   <> genLine "getObjectId :: Text -> ClMonad WObj"

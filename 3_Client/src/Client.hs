@@ -18,7 +18,7 @@ import qualified Network.Socket             as Socket
 import qualified Data.ByteString            as BS
 import           Control.Monad.State.Strict
 import qualified Data.Text as T
-import Protocol (ClState(clActiveIfaces))
+import           System.Posix.Types
 
 
 -- Note the wlRegistryBind function in the xml file is wrong
@@ -51,12 +51,16 @@ removeActiveIfac obj  = do
 -- | sendRequests - send all requests from the request list
 sendRequests :: Socket.Socket -> ClMonad ()
 sendRequests serverSock = do
+    _ <- liftIO $ putStrLn "sendRequests"
+    fds  <- collectFds
     reqs <- collectRequests
-    _ <- liftIO $ sendToWayland serverSock reqs []
+    _ <- liftIO $ sendToWayland serverSock reqs fds
     st <- get
     -- liftIO $ printActiveIfaces (clActiveIfaces st)
-    put st {clReqs = []}
+    put st {clReqs = [], clFds = []}
   where
+    collectFds :: ClMonad [Fd]
+    collectFds = do reverse . clFds <$> get
     collectRequests :: ClMonad BS.ByteString
-    collectRequests = do mconcat. reverse . clReqs <$> get
+    collectRequests = do mconcat . reverse . clReqs <$> get
 

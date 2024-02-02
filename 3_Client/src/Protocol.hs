@@ -18,6 +18,7 @@ import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.List (find)
+import System.Posix.Types (Fd)
 
 type ClMonad a = ST.StateT ClState IO a
 
@@ -188,10 +189,11 @@ wlShmPoolResize size = do
 -- ** Interface: WlShm - shared memory support
 
 -- | Request opc: 0 - create a shm pool
-wlShmCreatePool :: Text -> WFd -> WInt -> ClMonad WObj
+wlShmCreatePool :: Text -> Fd -> WInt -> ClMonad WObj
 wlShmCreatePool xid fd size = do
     wobj <- getObjectId cWlShm
     xid' <- createNewId xid
+    addFd fd
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -227,9 +229,10 @@ wlDataOfferAccept serial mimeType = do
   where len = 12 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 -- | Request opc: 1 - request that the data is transferred
-wlDataOfferReceive :: WString -> WFd -> ClMonad ()
+wlDataOfferReceive :: WString -> Fd -> ClMonad ()
 wlDataOfferReceive mimeType fd = do
     wobj <- getObjectId cWlDataOffer
+    addFd fd
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -1235,7 +1238,7 @@ type TwlDataOfferOffer = WString -> ClMonad ()
 type TwlDataOfferSourceActions = WUint -> ClMonad ()
 type TwlDataOfferAction = WUint -> ClMonad ()
 type TwlDataSourceTarget = WString -> ClMonad ()
-type TwlDataSourceSend = WString -> WFd -> ClMonad ()
+type TwlDataSourceSend = WString -> Fd -> ClMonad ()
 type TwlDataSourceCancelled = ClMonad ()
 type TwlDataSourceDndDropPerformed = ClMonad ()
 type TwlDataSourceDndFinished = ClMonad ()
@@ -1262,7 +1265,7 @@ type TwlPointerFrame = ClMonad ()
 type TwlPointerAxisSource = WUint -> ClMonad ()
 type TwlPointerAxisStop = WUint -> WUint -> ClMonad ()
 type TwlPointerAxisDiscrete = WUint -> WInt -> ClMonad ()
-type TwlKeyboardKeymap = WUint -> WFd -> WUint -> ClMonad ()
+type TwlKeyboardKeymap = WUint -> Fd -> WUint -> ClMonad ()
 type TwlKeyboardEnter = WUint -> WObj -> WArray -> ClMonad ()
 type TwlKeyboardLeave = WUint -> WObj -> ClMonad ()
 type TwlKeyboardKey = WUint -> WUint -> WUint -> WUint -> ClMonad ()
@@ -1712,7 +1715,8 @@ data ClState = ClState {
     clgToplevelListener :: Maybe XdgToplevelListener,
     clgPopupListener :: Maybe XdgPopupListener,
     clActiveIfaces :: [IfacKey],
-    clReqs :: [BS.ByteString] }
+    clReqs :: [BS.ByteString],
+    clFds :: [Fd]}
 
 -- Initializer for ClState
 
@@ -1737,7 +1741,9 @@ initClState = ClState {    clDisplayListener = Nothing,
     clgToplevelListener = Nothing,
     clgPopupListener = Nothing,
     clActiveIfaces = initActiveIfaces,
-    clReqs = [] }
+    clReqs = [],
+    clFds = []}
+
 -- Generate the setter functions for the listeners
 
 setDisplayListener :: WlDisplayListener -> ClMonad ()
@@ -2043,6 +2049,13 @@ addRequest bs = do
     st <- ST.get
     ST.liftIO $ putStrLn $ "Add Request: " <> toHexString bs
     ST.put $ st {clReqs = bs : clReqs st}
+
+-- Add a FileDescriptor to the state. Goes into the ancillary data of the socket
+addFd :: Fd -> ClMonad ()
+addFd fd = do
+    st <- ST.get
+    ST.liftIO $ putStrLn $ "Add Fd: " <> show fd
+    ST.put $ st {clFds = fd : clFds st}
 
 -- Get an WObj from the interface text name
 getObjectId :: Text -> ClMonad WObj

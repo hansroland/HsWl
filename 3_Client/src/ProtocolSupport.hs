@@ -18,9 +18,6 @@ import qualified Data.Text.IO               as TIO
 
 import Text.Printf
 
--- TODO move to Types, define a Binary instance
-putFd :: WFd -> Put
-putFd  _ = putByteString BS.empty
 
 runByteString :: Put -> BL.ByteString
 runByteString = BL.toStrict . runPut
@@ -36,10 +33,6 @@ parseWObj = WObj . fromIntegral <$> getWord32host
 -- TODO replace with normal get !!
 parseWOpc :: Get WOpc
 parseWOpc = WOpc . fromIntegral <$> getWord16host
-
--- TODO move to Types, define a Binary instance
-parseWFd :: Get WFd
-parseWFd = error "parseWFD is not yet defined"
 
 -- TODO move to Types, define a Binary instance
 parseWFixed :: Get WFixed

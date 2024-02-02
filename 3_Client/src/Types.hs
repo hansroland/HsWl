@@ -12,6 +12,7 @@ import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Text.Printf
+import System.Posix.Types (Fd(..))
 
 import qualified Data.ByteString       as BS
 
@@ -80,14 +81,10 @@ instance Binary WFixed where
     get = error "get instance for WFixed not yet defined"
 
 
-newtype WFd = WFd Int
-    deriving (Eq, Ord, Enum, Num)
-    deriving newtype (Read, Show, Integral, Real)
-
-instance Binary WFd where
-    -- WFds are not sent over the wire. We use an ancillary channel
-    put (WFd _s) = pure ()
-    get = error "get instance for WFd not yet defined"
+instance Binary Fd where
+    -- WFds are not sent over the wire. We use the ancillary channel of
+    put (Fd _s) = pure ()
+    get = error "get instance for Fd not yet defined"
 
 
 newtype WArray = WArray [WUint]

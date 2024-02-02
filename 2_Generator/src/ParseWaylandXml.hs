@@ -93,7 +93,7 @@ argumentMap :: DM.Map Text Text
 argumentMap = DM.fromList [ ("int", "WInt"), ("uint", "WUint"),
                             ("fixed", "WFixed"), ("string", "WString"),
                             ("object", "WObj"), ("new_id", "WNewId"),
-                            ("array", "WArray"), ("fd", "WFd") ]
+                            ("array", "WArray"), ("fd", "Fd") ]
 
 fixStopword :: Text -> Text
 fixStopword w =

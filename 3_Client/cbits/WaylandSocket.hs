@@ -32,6 +32,7 @@ import qualified Data.ByteString    as BS
 import           Foreign
 import           Foreign.C.Types
 import qualified Network.Socket     as Socket
+import           System.Posix.Types (Fd)
 
 foreign import ccall unsafe "wayland-msg-handling.h sendmsg_wayland"
     c_sendmsg_wayland  :: CInt -- fd
@@ -51,7 +52,10 @@ foreign import ccall unsafe "wayland-msg-handling.h recvmsg_wayland"
         -> IO CInt -- bytes received
 
 
-sendToWayland :: Socket.Socket -> BS.ByteString -> [Int] -> IO Int
+
+-- See: https://stackoverflow.com/questions/44512077/haskell-ffi-passing-multiple-arrays-to-c
+
+sendToWayland :: Socket.Socket -> BS.ByteString -> [Fd] -> IO Int
 sendToWayland s bs fds = do
     socket <- Socket.unsafeFdSocket s
     CC.threadWaitWrite $ fromIntegral socket
@@ -59,6 +63,7 @@ sendToWayland s bs fds = do
     where
         c_fds = map fromIntegral fds
         sendData (bytePtr, byteLen) = withArrayLen c_fds $ \fdLen fdArray -> do
+            putStrLn $ "fdLen: " <> show fdLen <> " fds: " <> show fds <> " fdArray: " <> show fdArray
             let c_byteLen = fromIntegral byteLen
             let c_fdLen = fromIntegral fdLen
             socket <- Socket.unsafeFdSocket s

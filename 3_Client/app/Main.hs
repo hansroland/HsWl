@@ -15,7 +15,6 @@ import Shm
 import qualified Network.Socket             as Socket
 import qualified Control.Monad.State.Strict as ST
 import qualified Data.Text.IO               as TIO
-import Protocol (TwlBufferRelease, wlBufferDestroy, setBufferListener)
 
 import Foreign (ForeignPtr, nullPtr, withForeignPtr, newForeignPtr_, pokeElemOff)
 import Data.Word (Word32)
@@ -214,6 +213,7 @@ drawFrame {-shm-} = do
       size   = stride * height                 -- 1228800  x'012C00'
 
   fd <- ST.liftIO $ allocateShmFile size
+  ST.liftIO $ putStrLn $ "drawFrame fd: " <> show fd
   memAddr <- ST.liftIO $ mmap nullPtr (fromIntegral size)
             (cPROT_READ + cPROT_WRITE) cMAP_SHARED (fromIntegral fd) 0
   fmemAddr <- ST.liftIO $ newForeignPtr_ memAddr
