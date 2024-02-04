@@ -63,7 +63,7 @@ sendToWayland s bs fds = do
     where
         c_fds = map fromIntegral fds
         sendData (bytePtr, byteLen) = withArrayLen c_fds $ \fdLen fdArray -> do
-            putStrLn $ "fdLen: " <> show fdLen <> " fds: " <> show fds <> " fdArray: " <> show fdArray
+            -- putStrLn $ "fdLen: " <> show fdLen <> " fds: " <> show fds <> " fdArray: " <> show fdArray
             let c_byteLen = fromIntegral byteLen
             let c_fdLen = fromIntegral fdLen
             socket <- Socket.unsafeFdSocket s

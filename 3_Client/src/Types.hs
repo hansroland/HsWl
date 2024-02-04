@@ -28,16 +28,9 @@ instance Binary WObj where
     put (WObj n) = putWord32host n
     get = WObj <$> getWord32host
 
-type WNewId = WObj
-{-
-newtype WNewId = WNewId Word32
-    deriving (Eq, Ord, Enum, Num)
-    deriving newtype (Read, Show, Integral, Real)
+type WNewId = WObj  -- Do not distinguish between WNewId and WObj
 
-instance Binary WNewId where
-    put (WNewId n) = putWord32host n
-    get = WNewId <$> getWord32host
--}
+
 newtype WOpc = WOpc Word16
     deriving (Eq, Ord, Enum, Num)
     deriving newtype (Read, Show, Integral, Real)
@@ -151,7 +144,7 @@ unWString (WString txt) = txt
 parseWArray :: Get WArray
 parseWArray = do
     len <- getWord32host
-    arr <- mapM (const get) [1..len]
+    arr <- mapM (const get) [1..(len `div` 4)] -- Array length is in bytes
     pure $ WArray arr
 
 data WInputMsg = WInputMsg
@@ -168,4 +161,3 @@ instance Show WInputMsg where
 
 toHexString1 :: BS.ByteString -> String
 toHexString1 = BS.foldr ((<>) . printf "%02x") ""
-

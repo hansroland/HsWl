@@ -41,9 +41,6 @@ allocateShmFile sz = do
   setFdSize fd (COff (fromIntegral sz))
   return fd
 
-closeShmFile :: Fd -> IO ()
-closeShmFile = closeFd
-
 -- --------------------------------------------------------------------
 -- Posix memory mapping
 -- --------------------------------------------------------------------

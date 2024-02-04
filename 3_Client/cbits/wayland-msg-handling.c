@@ -113,7 +113,7 @@ int recvmsg_wayland(int fd, const char *buf, int bufsize, int *fds,
     if (len >= 0)
         *n_fds = decode_cmsg(fds, fdbufsize, &msg);
     else {
-        /* printf("recvmsg error: %m!\n"); */
+        printf("recvmsg error: %m!\n");
         *n_fds = 0;
     }
 
@@ -139,14 +139,13 @@ int sendmsg_wayland(int fd, const char *buf, int bufsize, int *fds, int n_fds)
     msg.msg_control = cmsg_buf;
     msg.msg_controllen = clen;
     msg.msg_flags = 0;
-    print_msghdr(&msg);
 
     do {
         len = sendmsg(fd, &msg, MSG_NOSIGNAL | MSG_DONTWAIT);
     } while (len == -1 && errno == EINTR);
 
     if (len == -1) {
-        /* printf("sendmsg error: %m!\n"); */
+        printf("sendmsg error: %m!\n");
         return -1;
     }
 
@@ -155,15 +154,4 @@ int sendmsg_wayland(int fd, const char *buf, int bufsize, int *fds, int n_fds)
         close(fds[i]);
     }
     return len;
-}
-
-// See: https://pubs.opengroup.org/onlinepubs/009695399/basedefs/sys/socket.h.html
-void print_msghdr (struct msghdr *msg)
-{
-    printf ("CMSGHDR Data:\n");
-    printf ("  msg_flags: %i\n",      msg->msg_flags);
-    printf ("  msg_iovlen: %i\n",     msg->msg_iovlen);
-    printf ("  msg_controllen: %i\n", msg->msg_controllen);
-    // printf ("  msg-control: %i\n",    *((int*)msg->msg_control ));
-
 }

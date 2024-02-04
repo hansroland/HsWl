@@ -184,10 +184,10 @@ myXdgToplevelListener = XdgToplevelListener (Just myXdgToplevelConfigure) Nothin
 
 myXdgToplevelConfigure :: TxdgToplevelConfigure
 myXdgToplevelConfigure width height states = do
+  -- ST.liftIO $ putStrLn "Received XdgToplevelConfigure event. width: "
   ST.liftIO $ putStrLn ("Received XdgToplevelConfigure event. width: "
-          <> show width <> " height:" <> show height <> " states:" <> show states)
+      <> show width <> " height:" <> show height <> " states:" <> show states)
 -- --------------------------------------------------------------------
-
 
 myXdgSurfaceListener :: XdgSurfaceListener
 myXdgSurfaceListener = XdgSurfaceListener (Just myXdgSurfaceConfigure)
@@ -223,7 +223,7 @@ drawFrame {-shm-} = do
   buffer <- wlShmPoolCreateBuffer cWlBuffer 0
             (fromIntegral width) (fromIntegral height) (fromIntegral stride) wL_SHM_FORMAT_XRGB8888
   wlShmPoolDestroy
-  ST.liftIO $ closeShmFile fd
+  -- The fd will be closed, after it has been sent to the server
   ST.liftIO $ munmap memAddr (fromIntegral size)
   pure buffer
 
