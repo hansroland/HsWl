@@ -4,9 +4,6 @@ module ClientSupport
 where
 
 import Protocol
--- import Mayland
-
-
 import Types
 import WaylandSocket
 import ProtocolSupport ( parseWObj, parseWOpc)

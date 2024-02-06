@@ -2,11 +2,7 @@
 
 module Main where
 
-
 import Protocol
--- import Mayland
-
-
 import Types
 import Client
 import ClientSupport

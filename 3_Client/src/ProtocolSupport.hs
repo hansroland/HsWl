@@ -41,8 +41,6 @@ parseWFixed = error "parseWFixed is not yet defined in ProtocolSupport"
 parseWArray :: Get WArray
 parseWArray = error "parseWArray is not yet defined in ProtocolSupport"
 
-
-
 initActiveIfaces :: [IfacKey]
 initActiveIfaces = [ (1, "wl_display")]
 
