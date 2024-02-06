@@ -140,6 +140,9 @@ int sendmsg_wayland(int fd, const char *buf, int bufsize, int *fds, int n_fds)
     msg.msg_controllen = clen;
     msg.msg_flags = 0;
 
+    hexprint("\nContents of msg", &msg, 56);
+    hexprint ("\nContents of cmsg_buf", cmsg_buf, clen);
+
     do {
         len = sendmsg(fd, &msg, MSG_NOSIGNAL | MSG_DONTWAIT);
     } while (len == -1 && errno == EINTR);
@@ -149,9 +152,41 @@ int sendmsg_wayland(int fd, const char *buf, int bufsize, int *fds, int n_fds)
         return -1;
     }
 
-    /* close the fds now */
+    /* close the fds after we have sent them */
     for (i = 0; i < n_fds; i++) {
         close(fds[i]);
     }
     return len;
 }
+
+void hexprint(char title[], unsigned char bytearr[], int arrlen)
+{
+    printf ("%s\n", title);
+    for (size_t i = 0; i < arrlen; i++) {
+        printf("%.2x", bytearr[i]);
+        if ((i+1)%4 == 0) {printf(" ");}
+        if ((i+1)%16 == 0) {printf(" ");}
+        if ((i+1)%32 == 0) {printf("\n");}
+    }
+    printf ("\n");
+}
+
+/*
+struct msghdr {
+    void            *msg_name;      // optional address
+    socklen_t       msg_namelen;    // size of address
+    struct          iovec *msg_iov; // scatter/gather array
+    int             msg_iovlen;     // # elements in msg_iov
+    void            *msg_control;   // ancillary data, see below
+    socklen_t       msg_controllen; // ancillary data buffer len
+    int             msg_flags;      // flags on received message
+};
+
+struct cmsghdr {
+    socklen_t cmsg_len;    // data byte count, including header
+    int       cmsg_level;  //riginating protocol
+    int       cmsg_type;   // protocol-specific type
+    // followed by
+    unsigned char cmsg_data[];};
+
+*/

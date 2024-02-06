@@ -9,7 +9,7 @@ import Protocol
 
 import Types
 import WaylandSocket
-import ProtocolSupport ( parseWObj, parseWOpc, toHexString)
+import ProtocolSupport ( parseWObj, parseWOpc)
 
 import Data.Binary.Get
 

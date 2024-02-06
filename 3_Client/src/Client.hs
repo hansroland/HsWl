@@ -8,6 +8,7 @@ import ProtocolSupport
 
 import Types
 import WaylandSocket
+import Socket
 -- import Shm
 
 import qualified Data.Binary                as BP
@@ -54,7 +55,13 @@ sendRequests serverSock = do
     _ <- liftIO $ putStrLn "sendRequests"
     fds  <- collectFds
     reqs <- collectRequests
-    _ <- liftIO $ sendToWayland serverSock reqs fds
+    -- _ <- liftIO $ sendToWayland serverSock reqs fds
+    len <- liftIO $ Socket.withFdSocket serverSock (socketSend reqs fds )
+    liftIO $ putStrLn $ "RSX socketSend len:" <> show len
+    if len < 0
+        then liftIO $ ioError $ userError "sendmsg failed"
+        else return $ fromIntegral len
+
     st <- get
     -- liftIO $ printActiveIfaces (clActiveIfaces st)
     put st {clReqs = [], clFds = []}

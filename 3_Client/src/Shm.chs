@@ -12,7 +12,6 @@ import Foreign.C
 -- import Foreign.Ptr (Ptr, wordPtrToPtr)
 
 import Foreign (Ptr, wordPtrToPtr)
-import System.Posix.IO (closeFd )
 
 import System.Posix.SharedMem
 import System.Posix.Types
