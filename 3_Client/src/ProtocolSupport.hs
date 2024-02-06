@@ -12,7 +12,6 @@ import           Data.Binary.Put
 import           Data.Binary.Get
 import           Data.Text (Text)
 import qualified Data.ByteString            as BL
-import qualified Data.ByteString            as BS
 import qualified Data.Text                  as T
 import qualified Data.Text.IO               as TIO
 

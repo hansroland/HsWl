@@ -10,22 +10,24 @@ import           Data.ByteString.Internal
 import           Foreign.Ptr
 import           Foreign.ForeignPtr
 import           Data.Binary
--- import           Data.Binary.Put
--- import           Data.Coerce
 import           Foreign.Marshal.Alloc
 import           Foreign
 import           Foreign.C.Types
 import           Foreign.C.String
 import           System.Posix.Types (Fd(..))
+import           Control.Monad
 -- import           Posix.Socket.Types(noSignal)
 
--- #include <stdio.h>
+#include <stdio.h>
+
+-- Attention: HEART ATTACK DANGER!! This module is still very hacky!!
+-- TODO: Use Hskell structures for hdrmsg iovec and cmsg together with Storable intances!!
 
 -- Delete the Fd's after the send !!!
 socketSend :: BS.ByteString -> [Fd] -> CInt -> IO (Int)
 socketSend bs fds socketFd = do
     --Allocate Buffer for IOVec MsgHdr and Cmsg
-    let cmsgLen = calcCmsgLen fds
+    let cmsgLen = calcCmsgLen
     let bufflen = msgHdrLen + iovecLen + cmsgLen
     allocaBytes bufflen $ \ptrBuff -> do
         let ptrIovec = ptrBuff
@@ -68,27 +70,27 @@ socketSend bs fds socketFd = do
             withCString title3 $ \c_str ->
                 hexprint c_str (castPtr ptrCmsg) $ fromIntegral cmsgLen
 
+            len <- c_sendmsg socketFd ptrMsg 0    -- noSignal <> Socket.MSG_DONTWAIT)
 
-            c_sendmsg socketFd ptrMsg 0    -- noSignal <> Socket.MSG_DONTWAIT)
+            putStrLn $ "RSX socketSend len:" <> show len
+            when (len < 0) $ ioError $ userError "sendmsg failed"
+            pure len
+  where
+    -- Calculate the length of the cmsg_buf
+    calcCmsgLen :: Int
+    calcCmsgLen = 16 + 4 * length fds
 
+    msgHdrLen :: Int
+    msgHdrLen = 56
 
+    iovecLen :: Int
+    iovecLen = 16
 
--- Calculate the length of the cmsg_buf
-calcCmsgLen :: [Fd] -> Int
-calcCmsgLen fds = 16 + 4 * length fds
+    pokew64 :: Ptr Word64 -> Int -> Word64 -> IO()
+    pokew64 ptr offset = poke (plusPtr ptr offset)
 
-msgHdrLen :: Int
-msgHdrLen = 56
-
-iovecLen :: Int
-iovecLen = 16
-
-pokew64 :: Ptr Word64 -> Int -> Word64 -> IO()
-pokew64 ptr offset = poke (plusPtr ptr offset)
-
-pokew32 :: Ptr Word64 -> Int -> Word32 -> IO()
-pokew32 ptr offset = poke (plusPtr ptr offset)
-
+    pokew32 :: Ptr Word64 -> Int -> Word32 -> IO()
+    pokew32 ptr offset = poke (plusPtr ptr offset)
 
 foreign import capi unsafe "wayland-msg-handling.h hexprint"
     hexprint  :: Ptr CChar   -- titel

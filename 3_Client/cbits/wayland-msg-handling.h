@@ -29,8 +29,6 @@
 int recvmsg_wayland(int fd, const char *buf, int bufsize, int *fds,
         int fdbufsize, int *n_fds);
 
-int sendmsg_wayland(int fd, const char *buf, int bufsize, int *fds, int n_fds);
-
 void print_msghdr (struct msghdr *msg);
 
 void hexprint(char title[], unsigned char bytearr[], int len);

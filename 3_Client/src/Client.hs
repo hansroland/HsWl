@@ -7,7 +7,6 @@ import Protocol
 import ProtocolSupport
 
 import Types
-import WaylandSocket
 import Socket
 -- import Shm
 
@@ -20,6 +19,7 @@ import qualified Data.ByteString            as BS
 import           Control.Monad.State.Strict
 import qualified Data.Text as T
 import           System.Posix.Types
+import           System.Posix.IO
 
 
 -- Note the wlRegistryBind function in the xml file is wrong
@@ -55,13 +55,8 @@ sendRequests serverSock = do
     _ <- liftIO $ putStrLn "sendRequests"
     fds  <- collectFds
     reqs <- collectRequests
-    -- _ <- liftIO $ sendToWayland serverSock reqs fds
-    len <- liftIO $ Socket.withFdSocket serverSock (socketSend reqs fds )
-    liftIO $ putStrLn $ "RSX socketSend len:" <> show len
-    if len < 0
-        then liftIO $ ioError $ userError "sendmsg failed"
-        else return $ fromIntegral len
-
+    _ <- liftIO $ Socket.withFdSocket serverSock (socketSend reqs fds )
+    liftIO $ mapM_ closeFd fds
     st <- get
     -- liftIO $ printActiveIfaces (clActiveIfaces st)
     put st {clReqs = [], clFds = []}
@@ -70,4 +65,3 @@ sendRequests serverSock = do
     collectFds = do reverse . clFds <$> get
     collectRequests :: ClMonad BS.ByteString
     collectRequests = do mconcat . reverse . clReqs <$> get
-

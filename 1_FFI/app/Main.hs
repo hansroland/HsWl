@@ -43,9 +43,9 @@ registryGlobalHandler _ _ name piface ver = do
             pure $ cstate1 {clXdgWmBase = ptrXdg}
         _ -> pure cstate1
 
-    myPutStrLn $ "interface: " <> show iface
-      <> ", version: " <> show ver
-      <> ", name: " <> show name
+--    myPutStrLn $ "interface: " <> show iface
+--      <> ", version: " <> show ver
+--      <> ", name: " <> show name
     setClientState cstate2
     pure ()
 
@@ -93,9 +93,8 @@ drawFrame shm = do
   fd <- allocateShmFile size
   memAddr <- mmap nullPtr (fromIntegral size)
             (cPROT_READ + cPROT_WRITE) cMAP_SHARED (fromIntegral fd) 0
-  foreignPtr <- newForeignPtr_ memAddr
-  fillBuffer foreignPtr width height
-  myPutStrLn (" memAddr " ++ show memAddr ++ " " ++ show cMAP_FAILED)
+  fmemAddr <- newForeignPtr_ memAddr
+  fillBuffer fmemAddr width height
   shmPool <- shmCreatePool shm (fromIntegral fd) (fromIntegral size)
   buffer <- shmPoolCreateBuffer shmPool 0
             (fromIntegral width) (fromIntegral height) (fromIntegral stride) wL_SHM_FORMAT_XRGB8888

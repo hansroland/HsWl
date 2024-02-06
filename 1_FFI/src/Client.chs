@@ -70,7 +70,6 @@ import WaylandADTs
 
 import Test.RandomStrings
 
-import Foreign
 import Foreign.C.String
 import Foreign.Ptr (Ptr, FunPtr, nullPtr)
 import Foreign.Storable
@@ -293,6 +292,7 @@ randomFileName = (<>) <$> pure "/wl_shm-" <*> (randomString (onlyLower randomASC
 createShmFile :: IO Fd
 createShmFile = do
   fn <- randomFileName
+  -- putStrLn $ "CreateSmhFile fn: " <> fn
   let flags = ShmOpenFlags { shmReadWrite = True
                            , shmCreate = True
                            , shmExclusive = True

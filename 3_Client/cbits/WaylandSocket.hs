@@ -23,7 +23,7 @@ OF THIS SOFTWARE.
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module WaylandSocket (sendToWayland, recvFromWayland)
+module WaylandSocket (recvFromWayland)
 
 where
 
@@ -32,15 +32,7 @@ import qualified Data.ByteString    as BS
 import           Foreign
 import           Foreign.C.Types
 import qualified Network.Socket     as Socket
-import           System.Posix.Types (Fd)
-
-foreign import ccall unsafe "wayland-msg-handling.h sendmsg_wayland"
-    c_sendmsg_wayland  :: CInt -- fd
-        -> Ptr CChar -- buf
-        -> CInt -- bufsize
-        -> Ptr CInt -- fds
-        -> CInt -- n_fds
-        -> IO CInt -- bytes sent
+-- import           System.Posix.Types (Fd)
 
 foreign import ccall unsafe "wayland-msg-handling.h recvmsg_wayland"
     c_recvmsg_wayland :: CInt -- fd
@@ -50,29 +42,6 @@ foreign import ccall unsafe "wayland-msg-handling.h recvmsg_wayland"
         -> CInt -- fdbufsize
         -> Ptr CInt -- n_fds
         -> IO CInt -- bytes received
-
-
-
--- See: https://stackoverflow.com/questions/44512077/haskell-ffi-passing-multiple-arrays-to-c
-
-sendToWayland :: Socket.Socket -> BS.ByteString -> [Fd] -> IO Int
-sendToWayland s bs fds = do
-    socket <- Socket.unsafeFdSocket s
-    CC.threadWaitWrite $ fromIntegral socket
-    BS.useAsCStringLen bs sendData
-    where
-        c_fds = map fromIntegral fds
-        sendData (bytePtr, byteLen) = withArrayLen c_fds $ \fdLen fdArray -> do
-            -- putStrLn $ "fdLen: " <> show fdLen <> " fds: " <> show fds <> " fdArray: " <> show fdArray
-            let c_byteLen = fromIntegral byteLen
-            let c_fdLen = fromIntegral fdLen
-            socket <- Socket.unsafeFdSocket s
-            len <- c_sendmsg_wayland socket bytePtr c_byteLen fdArray c_fdLen
-            putStrLn $ "RSX sendToWayland len:" <> show len
-            if len < 0
-                then ioError $ userError "sendmsg failed"
-                else return $ fromIntegral len
-
 
 recvFromWayland :: Socket.Socket -> IO (BS.ByteString, [Int])
 recvFromWayland s = allocaArray 4096 $ \cbuf -> do

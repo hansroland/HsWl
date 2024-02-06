@@ -1,4 +1,5 @@
 {-# Language GeneralisedNewtypeDeriving, DerivingStrategies #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Types where
 
