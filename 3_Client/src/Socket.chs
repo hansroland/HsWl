@@ -1,62 +1,73 @@
-{-# Language ScopedTypeVariables #-}
 {-# Language CApiFFI #-}
+{-# Language ScopedTypeVariables #-}
+{-# OPTIONS_GHC -funbox-strict-fields #-}
 
 module Socket where
 
--- See: https://ro-che.info/articles/2017-08-06-manage-allocated-memory-haskell
-
+-- import Network.Socket
 import qualified Data.ByteString            as BS
 import           Data.ByteString.Internal
-import           Foreign.Ptr
-import           Foreign.ForeignPtr
-import           Data.Binary
-import           Foreign.Marshal.Alloc
-import           Foreign
+
+import           System.Posix.Types (Fd(..))
+import           Data.Word
+import           Control.Monad
+
+
 import           Foreign.C.Types
 import           Foreign.C.String
-import           System.Posix.Types (Fd(..))
-import           Control.Monad
--- import           Posix.Socket.Types(noSignal)
+import           Foreign.Ptr
+import           Foreign.ForeignPtr
+import           Foreign.Storable
+import           Foreign.Marshal.Alloc
 
-#include <stdio.h>
 
--- Attention: HEART ATTACK DANGER!! This module is still very hacky!!
--- TODO: Use Hskell structures for hdrmsg iovec and cmsg together with Storable intances!!
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/uio.h>
 
--- Delete the Fd's after the send !!!
-socketSend :: BS.ByteString -> [Fd] -> CInt -> IO (Int)
+{-
+We allocate one single buffer filled as follows:
+-------------------------------------
+|   IOVec   |   MsgHdr  |  Cmsg     |
+-------------------------------------
+-}
+
+-- | Sends the data contained in the bytestring to the specified address.
+socketSend :: BS.ByteString -> [Fd] -> CInt -> IO Int
 socketSend bs fds socketFd = do
-    --Allocate Buffer for IOVec MsgHdr and Cmsg
+    let iovlen = {#sizeof iovec #}
+    let msglen = {#sizeof msghdr#}
     let cmsgLen = calcCmsgLen
-    let bufflen = msgHdrLen + iovecLen + cmsgLen
-    allocaBytes bufflen $ \ptrBuff -> do
-        let ptrIovec = ptrBuff
-            ptrMsg = plusPtr ptrIovec iovecLen
-            ptrCmsg = plusPtr ptrMsg msgHdrLen
-        -- Build iovec
+    allocaBytes (iovlen + msglen + cmsgLen) $ \bufPtr -> do
+        let ptrIov = castPtr bufPtr
+            ptrMsg = plusPtr ptrIov iovlen
+            ptrCmsg = plusPtr ptrMsg msglen
+            -- Build iovec c-structure
         let (fptrBs, bsLen) = toForeignPtr0 bs
         withForeignPtr fptrBs $ \ptrBs -> do
-            poke ptrIovec ptrBs                      -- *iov_base
-            poke (plusPtr ptrIovec 8) bsLen          -- iov_len
-            -- Build Cmsg
+            poke ptrIov IOVec  { iovBase = castPtr ptrBs
+                               , iovLen = bsLen }
+            -- Build msghdr c-structure
+            poke ptrMsg MsgHdr { msgName = nullPtr
+                               , msgNameLen = 0
+                               , msgIov = ptrIov
+                               , msgIovLen = 1
+                               , msgControl = ptrCmsg
+                               , msgControlLen = cmsgLen
+                               , msgFlags = 0 }
+            -- Build Cmsg structure
+            -- I don't have a `good` Cmsg structure in c-code. Therefore this little hack!
             let wcmsgLen :: Word64 = fromIntegral cmsgLen
                 wfds :: [Word32] = fromIntegral <$> fds
-            pokew64 ptrCmsg  0 wcmsgLen
-            pokew32 ptrCmsg 8 1
-            pokew32 ptrCmsg 12 1
-            let ptrLoop = plusPtr ptrCmsg 16
+                plusPtrCmsg = plusPtr ptrCmsg
+            poke (plusPtrCmsg 0)  wcmsgLen
+            poke (plusPtrCmsg 8)  solSocket
+            poke (plusPtrCmsg 12) scmRights
+            let ptrLoop = plusPtrCmsg 16
                 ixFds = zip [0..] wfds
             mapM_ (\(ix,fd) ->
-                pokew32 ptrLoop (ix * 4) fd)
+                poke (plusPtr ptrLoop (ix * 4)) fd)
                 ixFds
-            -- Build msghdr
-            pokew64 ptrMsg 0 0                -- *msg_name
-            pokew64 ptrMsg 8 0                -- msg_namelen
-            poke (plusPtr ptrMsg 16) (castPtr ptrIovec)        -- *msg_iovec
-            pokew64 ptrMsg 24 1               -- msg_iovlen
-            poke (plusPtr ptrMsg 32) ptrCmsg  -- *msg_control
-            pokew64 ptrMsg 40 wcmsgLen        -- msg_controllen
-            pokew64 ptrMsg 48 0               -- msg_flags
 
             let title1 = "msghdr"
             withCString title1 $ \c_str ->
@@ -64,7 +75,7 @@ socketSend bs fds socketFd = do
 
             let title2 = "iovec"
             withCString title2 $ \c_str ->
-                hexprint c_str (castPtr ptrIovec) 16
+                hexprint c_str (castPtr ptrIov) 16
 
             let title3 = "cmsg"
             withCString title3 $ \c_str ->
@@ -80,17 +91,75 @@ socketSend bs fds socketFd = do
     calcCmsgLen :: Int
     calcCmsgLen = 16 + 4 * length fds
 
-    msgHdrLen :: Int
-    msgHdrLen = 56
 
-    iovecLen :: Int
-    iovecLen = 16
+-- | The Haskell version of the c-msghdr structure
+data MsgHdr = MsgHdr
+    { msgName       :: !(Ptr Word8)
+    , msgNameLen    :: !Int                   -- (#type socklen_t)
+    , msgIov        :: !(Ptr IOVec)
+    , msgIovLen     :: !Int                  -- CSize or CInt
+    , msgControl    :: !(Ptr Word8)
+    , msgControlLen :: !Int                  -- or CInt
+    , msgFlags      :: !CInt
+    }
 
-    pokew64 :: Ptr Word64 -> Int -> Word64 -> IO()
-    pokew64 ptr offset = poke (plusPtr ptr offset)
+instance Storable MsgHdr where
+  sizeOf    _ = {#sizeof msghdr#}               -- (#const sizeof(struct msghdr))
+  alignment _ = 0
 
-    pokew32 :: Ptr Word64 -> Int -> Word32 -> IO()
-    pokew32 ptr offset = poke (plusPtr ptr offset)
+  peek p = do
+    name       <- {#get struct msghdr.msg_name#}       p
+    nameLen    <- {#get struct msghdr.msg_namelen#}    p
+    iov        <- {#get struct msghdr.msg_iov#}        p
+    iovLn      <- {#get struct msghdr.msg_iovlen#}     p
+    ctrl       <- {#get struct msghdr.msg_control#}    p
+    ctrlLen    <- {#get struct msghdr.msg_controllen#} p
+    flags      <- {#get struct msghdr.msg_flags#}      p
+    return $ MsgHdr (castPtr name) (fromIntegral nameLen)
+              (castPtr iov) (fromIntegral iovLn)
+              (castPtr ctrl) (fromIntegral ctrlLen) flags
+
+  poke p mh = do
+    {#set struct msghdr.msg_name#}       p (castPtr         (msgName mh))
+    {#set struct msghdr.msg_namelen#}    p (fromIntegral    (msgNameLen mh))
+    {#set struct msghdr.msg_iov#}        p (castPtr         (msgIov mh))
+    {#set struct msghdr.msg_iovlen#}     p (fromIntegral    (msgIovLen mh))
+    {#set struct msghdr.msg_control#}    p (castPtr         (msgControl mh))
+    {#set struct msghdr.msg_controllen#} p (fromIntegral    (msgControlLen mh))
+    {#set struct msghdr.msg_flags#}      p (fromIntegral    (msgFlags mh))
+
+-- | The Haskell version of the c-iovec structure
+data IOVec = IOVec
+    { iovBase :: !(Ptr ())
+    , iovLen  :: !Int
+    }
+
+instance Storable IOVec where
+  sizeOf    _ = {#sizeof iovec #}
+  alignment _ = 0
+
+  peek p = do
+    base <- {#get struct iovec.iov_base#} p
+    len  <- {#get struct iovec.iov_len#} p
+    return $ IOVec (castPtr base) (fromIntegral len)
+
+  poke p iov = do
+     {#set iovec.iov_base#} p (castPtr      (iovBase iov))
+     {#set iovec.iov_len#}  p (fromIntegral (iovLen iov))
+
+
+solSocket :: Word32
+solSocket = 1
+
+scmRights :: Word32
+scmRights = 1
+
+
+foreign import ccall unsafe "stdio.h sendmsg"
+    c_sendmsg :: CInt -> Ptr Word64 -> CInt -> IO Int
+
+--      Socket.MSG_NOSIGNAL <> Socket.MSG_DONTWAIT;   --msgflag
+
 
 foreign import capi unsafe "wayland-msg-handling.h hexprint"
     hexprint  :: Ptr CChar   -- titel
@@ -98,7 +167,3 @@ foreign import capi unsafe "wayland-msg-handling.h hexprint"
         -> CInt              -- bufsize
         -> IO ()             -- bytes sent
 
-foreign import ccall unsafe "stdio.h sendmsg"
-    c_sendmsg :: CInt -> Ptr Word64 -> CInt -> IO Int
-
---      Socket.MSG_NOSIGNAL <> Socket.MSG_DONTWAIT;   --msgflag
