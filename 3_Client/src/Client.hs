@@ -52,7 +52,7 @@ removeActiveIfac obj  = do
 -- | sendRequests - send all requests from the request list
 sendRequests :: Socket.Socket -> ClMonad ()
 sendRequests serverSock = do
-    _ <- liftIO $ putStrLn "sendRequests"
+    _ <- liftIO $ putStrLn "sendRequest"
     fds  <- collectFds
     reqs <- collectRequests
     _ <- liftIO $ Socket.withFdSocket serverSock (socketSend reqs fds )

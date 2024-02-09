@@ -6,44 +6,40 @@ module Socket where
 
 -- import Network.Socket
 import qualified Data.ByteString            as BS
+import qualified Network.Socket             as Socket
+import qualified Control.Concurrent         as CC
 import           Data.ByteString.Internal
 
 import           System.Posix.Types (Fd(..))
 import           Data.Word
 import           Control.Monad
 
-
 import           Foreign.C.Types
-import           Foreign.C.String
 import           Foreign.Ptr
 import           Foreign.ForeignPtr
 import           Foreign.Storable
 import           Foreign.Marshal.Alloc
 
-
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/uio.h>
 
-{-
-We allocate one single buffer filled as follows:
--------------------------------------
-|   IOVec   |   MsgHdr  |  Cmsg     |
--------------------------------------
--}
-
--- | Sends the data contained in the bytestring to the specified address.
+-- | Send the data contained in the bytestring to the specified address.
+-- We allocate one single buffer filled as follows:
+-- +-----------+-----------+-----------+
+-- |   IOVec   |   MsgHdr  |  Cmsg     |
+-- +-----------+-----------+-----------+
 socketSend :: BS.ByteString -> [Fd] -> CInt -> IO Int
 socketSend bs fds socketFd = do
     let iovlen = {#sizeof iovec #}
-    let msglen = {#sizeof msghdr#}
-    let cmsgLen = calcCmsgLen
+        msglen = {#sizeof msghdr#}
+        cmsgLen = calcCmsgLen
     allocaBytes (iovlen + msglen + cmsgLen) $ \bufPtr -> do
         let ptrIov = castPtr bufPtr
             ptrMsg = plusPtr ptrIov iovlen
             ptrCmsg = plusPtr ptrMsg msglen
             -- Build iovec c-structure
         let (fptrBs, bsLen) = toForeignPtr0 bs
+        putStrLn ("Number of bytes to send:" <> show bsLen)
         withForeignPtr fptrBs $ \ptrBs -> do
             poke ptrIov IOVec  { iovBase = castPtr ptrBs
                                , iovLen = bsLen }
@@ -68,21 +64,7 @@ socketSend bs fds socketFd = do
             mapM_ (\(ix,fd) ->
                 poke (plusPtr ptrLoop (ix * 4)) fd)
                 ixFds
-
-            let title1 = "msghdr"
-            withCString title1 $ \c_str ->
-                hexprint c_str ptrMsg 56
-
-            let title2 = "iovec"
-            withCString title2 $ \c_str ->
-                hexprint c_str (castPtr ptrIov) 16
-
-            let title3 = "cmsg"
-            withCString title3 $ \c_str ->
-                hexprint c_str (castPtr ptrCmsg) $ fromIntegral cmsgLen
-
             len <- c_sendmsg socketFd ptrMsg 0    -- noSignal <> Socket.MSG_DONTWAIT)
-
             putStrLn $ "RSX socketSend len:" <> show len
             when (len < 0) $ ioError $ userError "sendmsg failed"
             pure len
@@ -91,6 +73,40 @@ socketSend bs fds socketFd = do
     calcCmsgLen :: Int
     calcCmsgLen = 16 + 4 * length fds
 
+-- | Socket receive data
+--   At the moment, we ignore the Fds. We need an example to test...
+--  +-----------+-----------+-----------------+
+--  |   IOVec   |   MsgHdr  |  Inputdata (bs) |
+--  +-----------+-----------+-----------------+
+socketReceive :: Socket.Socket -> IO BS.ByteString
+socketReceive serverSock = Socket.withFdSocket serverSock socketReceive'
+
+socketReceive' :: CInt -> IO BS.ByteString
+socketReceive' socketFd = do
+    let iovlen = {#sizeof iovec #}
+        msglen = {#sizeof msghdr#}
+    let bufflen = iovlen + msglen + 4096
+    CC.threadWaitRead $ fromIntegral socketFd
+    allocaBytes bufflen $ \bufPtr -> do
+        let ptrIov = castPtr bufPtr
+            ptrMsg = plusPtr ptrIov iovlen
+            ptrBs = plusPtr ptrMsg msglen
+        -- Build iovec c-structure
+        poke ptrIov IOVec  { iovBase = ptrBs
+                           , iovLen = 4096 }
+        poke ptrMsg MsgHdr { msgName = nullPtr
+                           , msgNameLen = 0
+                           , msgIov = ptrIov
+                           , msgIovLen = 1
+                           , msgControl = nullPtr        -- TODO add adress of Control Buffer
+                           , msgControlLen = 0
+                           , msgFlags = 0 }
+        len <- c_rcvmsg socketFd ptrMsg 0
+        putStrLn $ "RSX socketReceive len:" <> show len
+        if len < 0
+            then ioError $ userError "recvmsg failed"
+            else do
+                BS.packCStringLen (ptrBs, fromIntegral len)
 
 -- | The Haskell version of the c-msghdr structure
 data MsgHdr = MsgHdr
@@ -157,13 +173,8 @@ scmRights = 1
 
 foreign import ccall unsafe "stdio.h sendmsg"
     c_sendmsg :: CInt -> Ptr Word64 -> CInt -> IO Int
-
 --      Socket.MSG_NOSIGNAL <> Socket.MSG_DONTWAIT;   --msgflag
 
-
-foreign import capi unsafe "wayland-msg-handling.h hexprint"
-    hexprint  :: Ptr CChar   -- titel
-        -> Ptr Word64        -- buffer to hexprint
-        -> CInt              -- bufsize
-        -> IO ()             -- bytes sent
+foreign import ccall unsafe "stdio.h recvmsg"
+    c_rcvmsg :: CInt -> Ptr Word64 -> CInt -> IO Int
 

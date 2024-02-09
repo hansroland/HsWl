@@ -5,7 +5,7 @@ where
 
 import Protocol
 import Types
-import WaylandSocket
+import Socket
 import ProtocolSupport ( parseWObj, parseWOpc)
 
 import Data.Binary.Get
@@ -120,7 +120,7 @@ sigHandler sig var = do
 
 socketRead :: Socket.Socket -> ClMonad ()
 socketRead serverSock = do
-    (bs, _fds) <- liftIO $ Err.catchIOError (recvFromWayland serverSock) (\_ -> return (BS.empty, []))
+    bs <- liftIO $ Err.catchIOError (socketReceive serverSock) (\_ -> return BS.empty)
     -- TODO: Clean up lazy and strict bytestring : convert to lazy after socket read!!
     let bsl = BL.fromStrict bs
     let blocks = splitMsgs bsl

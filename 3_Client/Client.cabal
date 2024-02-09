@@ -25,9 +25,9 @@ library
                       , ClientSupport
                       , Shm
                       , Socket
-    other-modules:    WaylandSocket
-    C-sources:           cbits/wayland-msg-handling.c
-    include-dirs:        cbits
+    -- other-modules:    WaylandSocket
+    -- C-sources:           cbits/wayland-msg-handling.c
+    -- include-dirs:        cbits
     -- other-extensions:
     build-depends:    base ^>=4.17.0.0
                       , mtl
