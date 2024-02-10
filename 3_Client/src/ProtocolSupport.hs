@@ -9,7 +9,6 @@ import           Types
 
 import Data.Binary
 import           Data.Binary.Put
-import           Data.Binary.Get
 import           Data.Text (Text)
 import qualified Data.ByteString            as BL
 import qualified Data.Text                  as T
@@ -24,22 +23,6 @@ runByteString = BL.toStrict . runPut
 unhandledEv :: Text -> WOpc -> IO()
 unhandledEv ifName opc = TIO.putStrLn $
    "ATTENTION UNHANDLED EVENT " <> ifName <> " " <>  T.pack (show opc)
-
--- TODO replace with normal get !!
-parseWObj :: Get WObj
-parseWObj = WObj . fromIntegral <$> getWord32host
-
--- TODO replace with normal get !!
-parseWOpc :: Get WOpc
-parseWOpc = WOpc . fromIntegral <$> getWord16host
-
--- TODO move to Types, define a Binary instance
-parseWFixed :: Get WFixed
-parseWFixed = error "parseWFixed is not yet defined in ProtocolSupport"
-
--- TODO move to Types, define a Binary instance
-parseWArray :: Get WArray
-parseWArray = error "parseWArray is not yet defined in ProtocolSupport"
 
 initActiveIfaces :: [IfacKey]
 initActiveIfaces = [ (1, "wl_display")]

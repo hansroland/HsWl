@@ -8,6 +8,7 @@ module Socket where
 import qualified Data.ByteString            as BS
 import qualified Network.Socket             as Socket
 import qualified Control.Concurrent         as CC
+import qualified System.IO.Error            as Err
 import           Data.ByteString.Internal
 
 import           System.Posix.Types (Fd(..))
@@ -64,7 +65,7 @@ socketSend bs fds socketFd = do
             mapM_ (\(ix,fd) ->
                 poke (plusPtr ptrLoop (ix * 4)) fd)
                 ixFds
-            len <- c_sendmsg socketFd ptrMsg 0    -- noSignal <> Socket.MSG_DONTWAIT)
+            len <- Err.catchIOError (c_sendmsg socketFd ptrMsg 0) (\_ -> pure (-1))    -- noSignal <> Socket.MSG_DONTWAIT)
             putStrLn $ "RSX socketSend len:" <> show len
             when (len < 0) $ ioError $ userError "sendmsg failed"
             pure len
@@ -101,7 +102,7 @@ socketReceive' socketFd = do
                            , msgControl = nullPtr        -- TODO add adress of Control Buffer
                            , msgControlLen = 0
                            , msgFlags = 0 }
-        len <- c_rcvmsg socketFd ptrMsg 0
+        len <- Err.catchIOError (c_rcvmsg socketFd ptrMsg 0) (\_ -> pure (-1))
         putStrLn $ "RSX socketReceive len:" <> show len
         if len < 0
             then ioError $ userError "recvmsg failed"

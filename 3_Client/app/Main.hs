@@ -18,8 +18,6 @@ import Control.Monad
 
 main :: IO ()
 main = do
-  putStrLn "Hello, Haskell!"
-  -- Socket.connectToServer
   connectToServer runClient
 
 -- ---------------------------------------------------------------------------

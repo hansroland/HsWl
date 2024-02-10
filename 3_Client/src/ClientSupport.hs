@@ -6,14 +6,12 @@ where
 import Protocol
 import Types
 import Socket
-import ProtocolSupport ( parseWObj, parseWOpc)
 
 import Data.Binary.Get
 
-import qualified Data.ByteString.Lazy       as BL
 import qualified Data.ByteString            as BS
+import qualified Data.ByteString.Lazy       as BL
 import qualified System.Environment         as E
-import qualified System.IO.Error            as Err
 import qualified System.Exit                as Exit
 import qualified Control.Monad              as M
 import qualified System.Posix.IO            as PI
@@ -22,6 +20,8 @@ import qualified System.Posix.User          as PU
 import qualified System.Posix.Signals       as Signals
 import qualified Network.Socket             as Socket
 import qualified Control.Concurrent.STM     as STM
+import qualified System.IO.Error            as Err
+import           System.Posix.IO
 
 import Control.Monad.State.Strict
 
@@ -47,8 +47,8 @@ getWInpMsg = runGet go
   where
     go ::  Get WInputMsg
     go  = do
-        obj <- parseWObj
-        opc <- parseWOpc
+        obj <- fromIntegral <$> getWord32host
+        opc <- fromIntegral <$> getWord16host
         len <- fromIntegral <$> getWord16host
         let newLen = len - 8
         bs  <- getByteString newLen
@@ -120,7 +120,7 @@ sigHandler sig var = do
 
 socketRead :: Socket.Socket -> ClMonad ()
 socketRead serverSock = do
-    bs <- liftIO $ Err.catchIOError (socketReceive serverSock) (\_ -> return BS.empty)
+    bs <- liftIO $ socketReceive serverSock
     -- TODO: Clean up lazy and strict bytestring : convert to lazy after socket read!!
     let bsl = BL.fromStrict bs
     let blocks = splitMsgs bsl
@@ -130,6 +130,24 @@ socketRead serverSock = do
     mapM_ dispatchEvent msgs
     --
     -- socketLoop serverSock
+
+-- | sendRequests - send all requests from the request list
+sendRequests :: Socket.Socket -> ClMonad ()
+sendRequests serverSock = do
+    _ <- liftIO $ putStrLn "sendRequest"
+    fds  <- collectFds
+    reqs <- collectRequests
+    _ <- liftIO $ Socket.withFdSocket serverSock (socketSend reqs fds )
+    liftIO $ mapM_ closeFd fds
+    st <- get
+    -- liftIO $ printActiveIfaces (clActiveIfaces st)
+    put st {clReqs = [], clFds = []}
+  where
+    collectFds :: ClMonad [PT.Fd]
+    collectFds = do reverse . clFds <$> get
+    collectRequests :: ClMonad BS.ByteString
+    collectRequests = do mconcat . reverse . clReqs <$> get
+
 
 
 
