@@ -5,6 +5,7 @@ module Types where
 
 import Data.Word
 import Data.Text (Text)
+import Data.Bits
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Control.Monad as M
@@ -42,7 +43,7 @@ instance Binary WOpc where
 
 newtype WUint = WUint Word32
     deriving (Eq, Ord, Enum, Num)
-    deriving newtype (Read, Show, Integral, Real)
+    deriving newtype (Read, Show, Integral, Real, Bits)
 
 instance Binary WUint where
     put (WUint n) = putWord32host n
@@ -70,9 +71,10 @@ newtype WFixed = WFixed Word32
     deriving (Eq, Ord, Enum, Num)
     deriving newtype (Read, Show, Integral, Real)
 
+-- TODO Decide about representation of WFixed
 instance Binary WFixed where
     put (WFixed _s) = error "put instance for WFixed not yet defined"
-    get = error "get instance for WFixed not yet defined"
+    get = parseWFixed
 
 
 instance Binary Fd where
@@ -112,6 +114,13 @@ parseWString = do
             skip 1                                  -- terminating NUL byte
             skip $ paddedLength dataLen - dataLen   -- read padded bytes
             return $ WString $ T.decodeUtf8 bs
+
+-- TODO: Get a rational number for this !!
+parseWFixed :: Get WFixed
+parseWFixed = do
+    val <- getWord32host
+    pure (WFixed val)
+
 
 -- Calculate the number of bytes needed to pad up to a 4 byte boundary
 paddedLength :: Int -> Int

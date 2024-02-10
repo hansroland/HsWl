@@ -15,6 +15,7 @@ import qualified Data.Text.IO               as TIO
 import Foreign (ForeignPtr, nullPtr, withForeignPtr, newForeignPtr_, pokeElemOff)
 import Data.Word (Word32)
 import Control.Monad
+import Data.Bits
 
 main :: IO ()
 main = do
@@ -36,6 +37,8 @@ runClient serverSock = do
     -- https://gitlab.freedesktop.org/wayland/wayland/-/blob/main/src/wayland-shm.c?ref_type=heads
     -- https://en.m.wikipedia.org/wiki/Unix_domain_socket
 
+    -- https://bugaevc.gitbooks.io/writing-wayland-clients/content/about-this-book/what-is-wayland.html
+
 
     setShmListener myShmListener
     -- TODO: cleanup name setgWmBaseListener
@@ -43,6 +46,10 @@ runClient serverSock = do
     setgToplevelListener myXdgToplevelListener
     setgSurfaceListener myXdgSurfaceListener
     setBufferListener myBufferListener
+
+    setSeatListener myWlSeatListener
+    setPointerListener myWlPointerListener
+
     surface <- wlCompositorCreateSurface cWlSurface
     xdgSurface <- xdgWmBaseGetXdgSurface cXdgSurface surface
     topLevel <- xdgSurfaceGetToplevel cXdgToplevel
@@ -121,6 +128,11 @@ myRegistryGlobal name interface version = do
         _ <- rsxRegistryBind (fromIntegral name) interface version cXdgWmBase
         pure ()
 
+      WString "wl_seat" -> do
+        ST.liftIO $ putStrLn "GOTCHA REGISTER wl_seat"
+        _ <- rsxRegistryBind (fromIntegral name) interface version cWlSeat
+        pure ()
+
       _ -> pure()
 
     pure ()
@@ -194,6 +206,92 @@ myXdgSurfaceConfigure serial = do
   _ <- wlSurfaceAttach buffer 0 0
   wlSurfaceCommit
   pure ()
+
+-- --------------------------------------------------------------------
+
+myWlSeatListener :: WlSeatListener
+myWlSeatListener = WlSeatListener
+                      (Just myWlSeatCapabilities)
+                      (Just myWlSeatName)
+
+myWlSeatCapabilities  :: TwlSeatCapabilities
+myWlSeatCapabilities capa = do
+    ST.liftIO $ putStrLn ("WlSeatCapabilities called capa: " <> show capa)
+    -- Bitwise 1 = pointer
+    -- Bitwise 2 = keyboard
+    if capa .&. 1 == 1
+      then do
+        ST.liftIO $ putStrLn "Pointer is available"
+        pointer <- wlSeatGetPointer "wl_pointer"
+        pure ()
+      else ST.liftIO $ putStrLn "Pointer is missing"
+    if capa .&. 2 == 2
+      then do
+        ST.liftIO $ putStrLn "Terminal is available"
+      else ST.liftIO $ putStrLn "Terminal is missing"
+    if capa .&. 4 == 4
+      then do
+        ST.liftIO $ putStrLn "Touch is available"
+      else ST.liftIO $ putStrLn "Touch is missing"
+    pure ()
+
+
+myWlSeatName :: TwlSeatName
+myWlSeatName name = do
+   ST.liftIO $ putStrLn ("WlSeatName name: " <> show name)
+   pure ()
+
+-- --------------------------------------------------------------------
+
+myWlPointerListener = WlPointerListener
+    (Just myWlPointerEnter)
+    (Just myWlPointerLeave)
+    (Just myWlPointerMotion)
+    (Just myWlPointerButton)
+    (Just myWlPointerAxis)
+    (Just myWlPointerFrame)
+    (Just myWlPointerAxisSource)
+    (Just myWlPointerAxisStop)
+    (Just myWlPointerAxisDiscrete)
+
+myWlPointerEnter :: TwlPointerEnter
+myWlPointerEnter serial surface surfaceX surfaceY = do
+    ST.liftIO $ putStrLn "wlPointerEnter"
+    pure ()
+
+myWlPointerLeave :: TwlPointerLeave
+myWlPointerLeave serial surface = do
+    ST.liftIO $ putStrLn "wlPointerLeave"
+    pure ()
+
+myWlPointerMotion :: TwlPointerMotion
+myWlPointerMotion time surfaceX surfaceY = do
+    pure ()
+
+myWlPointerButton :: TwlPointerButton
+myWlPointerButton serial time button state = do
+    ST.liftIO $ putStrLn "wlPointerButton"
+    pure ()
+
+myWlPointerAxis :: TwlPointerAxis
+myWlPointerAxis time axis value = do
+    pure ()
+
+myWlPointerFrame :: TwlPointerFrame
+myWlPointerFrame = do
+    pure ()
+
+myWlPointerAxisSource :: TwlPointerAxisSource
+myWlPointerAxisSource axisSource = do
+    pure ()
+
+myWlPointerAxisStop :: TwlPointerAxisStop
+myWlPointerAxisStop time axis = do
+    pure ()
+
+myWlPointerAxisDiscrete :: TwlPointerAxisDiscrete
+myWlPointerAxisDiscrete axis discrete = do
+    pure ()
 
 -- --------------------------------------------------------------------
 -- Create and fill a buffer
