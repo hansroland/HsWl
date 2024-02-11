@@ -96,10 +96,10 @@ genRequests reqs = mconcat $ map genRequest reqs
 
 -- | Generate a single request
 --
--- wlShmCreatePool :: Text -> Fd -> WInt -> ClMonad WObj
--- wlShmCreatePool xid fd size = do
---     wobj <- getObjectId cWlShm
+-- wlShmCreatePool :: WObj -> Text -> Fd -> WInt -> ClMonad WObj
+-- wlShmCreatePool wobj xid fd size = do
 --     xid' <- createNewId xid                      <--------
+--     addFd fd
 --     addRequest $ runByteString $ do
 --         put wobj
 --         put $ WOpc 0
