@@ -84,9 +84,8 @@ cXdgPopup = "xdg_popup"
 -- ** Interface: WlDisplay - core global object
 
 -- | Request opc: 0 - asynchronous roundtrip
-wlDisplaySync :: Text -> ClMonad WObj
-wlDisplaySync callback = do
-    wobj <- getObjectId cWlDisplay
+wlDisplaySync :: WObj -> Text -> ClMonad WObj
+wlDisplaySync wobj callback = do
     callback' <- createNewId callback
     addRequest $ runByteString $ do
         put wobj
@@ -96,9 +95,8 @@ wlDisplaySync callback = do
     pure callback'
 
 -- | Request opc: 1 - get global registry object
-wlDisplayGetRegistry :: Text -> ClMonad WObj
-wlDisplayGetRegistry registry = do
-    wobj <- getObjectId cWlDisplay
+wlDisplayGetRegistry :: WObj -> Text -> ClMonad WObj
+wlDisplayGetRegistry wobj registry = do
     registry' <- createNewId registry
     addRequest $ runByteString $ do
         put wobj
@@ -110,9 +108,8 @@ wlDisplayGetRegistry registry = do
 -- ** Interface: WlRegistry - global registry object
 
 -- | Request opc: 0 - bind an object to the display
-wlRegistryBind :: WUint -> Text -> ClMonad WObj
-wlRegistryBind name xid = do
-    wobj <- getObjectId cWlRegistry
+wlRegistryBind :: WObj -> WUint -> Text -> ClMonad WObj
+wlRegistryBind wobj name xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -125,9 +122,8 @@ wlRegistryBind name xid = do
 -- ** Interface: WlCompositor - the compositor singleton
 
 -- | Request opc: 0 - create new surface
-wlCompositorCreateSurface :: Text -> ClMonad WObj
-wlCompositorCreateSurface xid = do
-    wobj <- getObjectId cWlCompositor
+wlCompositorCreateSurface :: WObj -> Text -> ClMonad WObj
+wlCompositorCreateSurface wobj xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -137,9 +133,8 @@ wlCompositorCreateSurface xid = do
     pure xid'
 
 -- | Request opc: 1 - create new region
-wlCompositorCreateRegion :: Text -> ClMonad WObj
-wlCompositorCreateRegion xid = do
-    wobj <- getObjectId cWlCompositor
+wlCompositorCreateRegion :: WObj -> Text -> ClMonad WObj
+wlCompositorCreateRegion wobj xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -151,9 +146,8 @@ wlCompositorCreateRegion xid = do
 -- ** Interface: WlShmPool - a shared memory pool
 
 -- | Request opc: 0 - create a buffer from the pool
-wlShmPoolCreateBuffer :: Text -> WInt -> WInt -> WInt -> WInt -> WUint -> ClMonad WObj
-wlShmPoolCreateBuffer xid offset width height stride format = do
-    wobj <- getObjectId cWlShmPool
+wlShmPoolCreateBuffer :: WObj -> Text -> WInt -> WInt -> WInt -> WInt -> WUint -> ClMonad WObj
+wlShmPoolCreateBuffer wobj xid offset width height stride format = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -168,18 +162,16 @@ wlShmPoolCreateBuffer xid offset width height stride format = do
     pure xid'
 
 -- | Request opc: 1 - destroy the pool
-wlShmPoolDestroy :: ClMonad ()
-wlShmPoolDestroy  = do
-    wobj <- getObjectId cWlShmPool
+wlShmPoolDestroy :: WObj -> ClMonad ()
+wlShmPoolDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
         putWord16host 8
 
 -- | Request opc: 2 - change the size of the pool mapping
-wlShmPoolResize :: WInt -> ClMonad ()
-wlShmPoolResize size = do
-    wobj <- getObjectId cWlShmPool
+wlShmPoolResize :: WObj -> WInt -> ClMonad ()
+wlShmPoolResize wobj size = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -189,9 +181,8 @@ wlShmPoolResize size = do
 -- ** Interface: WlShm - shared memory support
 
 -- | Request opc: 0 - create a shm pool
-wlShmCreatePool :: Text -> Fd -> WInt -> ClMonad WObj
-wlShmCreatePool xid fd size = do
-    wobj <- getObjectId cWlShm
+wlShmCreatePool :: WObj -> Text -> Fd -> WInt -> ClMonad WObj
+wlShmCreatePool wobj xid fd size = do
     xid' <- createNewId xid
     addFd fd
     addRequest $ runByteString $ do
@@ -206,9 +197,8 @@ wlShmCreatePool xid fd size = do
 -- ** Interface: WlBuffer - content for a wl_surface
 
 -- | Request opc: 0 - destroy a buffer
-wlBufferDestroy :: ClMonad ()
-wlBufferDestroy  = do
-    wobj <- getObjectId cWlBuffer
+wlBufferDestroy :: WObj -> ClMonad ()
+wlBufferDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -217,9 +207,8 @@ wlBufferDestroy  = do
 -- ** Interface: WlDataOffer - offer to transfer data
 
 -- | Request opc: 0 - accept one of the offered mime types
-wlDataOfferAccept :: WUint -> WString -> ClMonad ()
-wlDataOfferAccept serial mimeType = do
-    wobj <- getObjectId cWlDataOffer
+wlDataOfferAccept :: WObj -> WUint -> WString -> ClMonad ()
+wlDataOfferAccept wobj serial mimeType = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -229,9 +218,8 @@ wlDataOfferAccept serial mimeType = do
   where len = 12 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 -- | Request opc: 1 - request that the data is transferred
-wlDataOfferReceive :: WString -> Fd -> ClMonad ()
-wlDataOfferReceive mimeType fd = do
-    wobj <- getObjectId cWlDataOffer
+wlDataOfferReceive :: WObj -> WString -> Fd -> ClMonad ()
+wlDataOfferReceive wobj mimeType fd = do
     addFd fd
     addRequest $ runByteString $ do
         put wobj
@@ -242,27 +230,24 @@ wlDataOfferReceive mimeType fd = do
   where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 -- | Request opc: 2 - destroy data offer
-wlDataOfferDestroy :: ClMonad ()
-wlDataOfferDestroy  = do
-    wobj <- getObjectId cWlDataOffer
+wlDataOfferDestroy :: WObj -> ClMonad ()
+wlDataOfferDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
         putWord16host 8
 
 -- | Request opc: 3 - the offer will no longer be used
-wlDataOfferFinish :: ClMonad ()
-wlDataOfferFinish  = do
-    wobj <- getObjectId cWlDataOffer
+wlDataOfferFinish :: WObj -> ClMonad ()
+wlDataOfferFinish wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 3
         putWord16host 8
 
 -- | Request opc: 4 - set the available/preferred drag-and-drop actions
-wlDataOfferSetActions :: WUint -> WUint -> ClMonad ()
-wlDataOfferSetActions dndActions preferredAction = do
-    wobj <- getObjectId cWlDataOffer
+wlDataOfferSetActions :: WObj -> WUint -> WUint -> ClMonad ()
+wlDataOfferSetActions wobj dndActions preferredAction = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 4
@@ -273,9 +258,8 @@ wlDataOfferSetActions dndActions preferredAction = do
 -- ** Interface: WlDataSource - offer to transfer data
 
 -- | Request opc: 0 - add an offered mime type
-wlDataSourceOffer :: WString -> ClMonad ()
-wlDataSourceOffer mimeType = do
-    wobj <- getObjectId cWlDataSource
+wlDataSourceOffer :: WObj -> WString -> ClMonad ()
+wlDataSourceOffer wobj mimeType = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -284,18 +268,16 @@ wlDataSourceOffer mimeType = do
   where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
 
 -- | Request opc: 1 - destroy the data source
-wlDataSourceDestroy :: ClMonad ()
-wlDataSourceDestroy  = do
-    wobj <- getObjectId cWlDataSource
+wlDataSourceDestroy :: WObj -> ClMonad ()
+wlDataSourceDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
         putWord16host 8
 
 -- | Request opc: 2 - set the available drag-and-drop actions
-wlDataSourceSetActions :: WUint -> ClMonad ()
-wlDataSourceSetActions dndActions = do
-    wobj <- getObjectId cWlDataSource
+wlDataSourceSetActions :: WObj -> WUint -> ClMonad ()
+wlDataSourceSetActions wobj dndActions = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -305,9 +287,8 @@ wlDataSourceSetActions dndActions = do
 -- ** Interface: WlDataDevice - data transfer device
 
 -- | Request opc: 0 - start drag-and-drop operation
-wlDataDeviceStartDrag :: WObj -> WObj -> WObj -> WUint -> ClMonad ()
-wlDataDeviceStartDrag source origin icon serial = do
-    wobj <- getObjectId cWlDataDevice
+wlDataDeviceStartDrag :: WObj -> WObj -> WObj -> WObj -> WUint -> ClMonad ()
+wlDataDeviceStartDrag wobj source origin icon serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -318,9 +299,8 @@ wlDataDeviceStartDrag source origin icon serial = do
         put serial
 
 -- | Request opc: 1 - copy data to the selection
-wlDataDeviceSetSelection :: WObj -> WUint -> ClMonad ()
-wlDataDeviceSetSelection source serial = do
-    wobj <- getObjectId cWlDataDevice
+wlDataDeviceSetSelection :: WObj -> WObj -> WUint -> ClMonad ()
+wlDataDeviceSetSelection wobj source serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -329,9 +309,8 @@ wlDataDeviceSetSelection source serial = do
         put serial
 
 -- | Request opc: 2 - destroy data device
-wlDataDeviceRelease :: ClMonad ()
-wlDataDeviceRelease  = do
-    wobj <- getObjectId cWlDataDevice
+wlDataDeviceRelease :: WObj -> ClMonad ()
+wlDataDeviceRelease wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -340,9 +319,8 @@ wlDataDeviceRelease  = do
 -- ** Interface: WlDataDeviceManager - data transfer interface
 
 -- | Request opc: 0 - create a new data source
-wlDataDeviceManagerCreateDataSource :: Text -> ClMonad WObj
-wlDataDeviceManagerCreateDataSource xid = do
-    wobj <- getObjectId cWlDataDeviceManager
+wlDataDeviceManagerCreateDataSource :: WObj -> Text -> ClMonad WObj
+wlDataDeviceManagerCreateDataSource wobj xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -352,9 +330,8 @@ wlDataDeviceManagerCreateDataSource xid = do
     pure xid'
 
 -- | Request opc: 1 - create a new data device
-wlDataDeviceManagerGetDataDevice :: Text -> WObj -> ClMonad WObj
-wlDataDeviceManagerGetDataDevice xid seat = do
-    wobj <- getObjectId cWlDataDeviceManager
+wlDataDeviceManagerGetDataDevice :: WObj -> Text -> WObj -> ClMonad WObj
+wlDataDeviceManagerGetDataDevice wobj xid seat = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -367,9 +344,8 @@ wlDataDeviceManagerGetDataDevice xid seat = do
 -- ** Interface: WlShell - create desktop-style surfaces
 
 -- | Request opc: 0 - create a shell surface from a surface
-wlShellGetShellSurface :: Text -> WObj -> ClMonad WObj
-wlShellGetShellSurface xid surface = do
-    wobj <- getObjectId cWlShell
+wlShellGetShellSurface :: WObj -> Text -> WObj -> ClMonad WObj
+wlShellGetShellSurface wobj xid surface = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -382,9 +358,8 @@ wlShellGetShellSurface xid surface = do
 -- ** Interface: WlShellSurface - desktop-style metadata interface
 
 -- | Request opc: 0 - respond to a ping event
-wlShellSurfacePong :: WUint -> ClMonad ()
-wlShellSurfacePong serial = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfacePong :: WObj -> WUint -> ClMonad ()
+wlShellSurfacePong wobj serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -392,9 +367,8 @@ wlShellSurfacePong serial = do
         put serial
 
 -- | Request opc: 1 - start an interactive move
-wlShellSurfaceMove :: WObj -> WUint -> ClMonad ()
-wlShellSurfaceMove seat serial = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceMove :: WObj -> WObj -> WUint -> ClMonad ()
+wlShellSurfaceMove wobj seat serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -403,9 +377,8 @@ wlShellSurfaceMove seat serial = do
         put serial
 
 -- | Request opc: 2 - start an interactive resize
-wlShellSurfaceResize :: WObj -> WUint -> WUint -> ClMonad ()
-wlShellSurfaceResize seat serial edges = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceResize :: WObj -> WObj -> WUint -> WUint -> ClMonad ()
+wlShellSurfaceResize wobj seat serial edges = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -415,18 +388,16 @@ wlShellSurfaceResize seat serial edges = do
         put edges
 
 -- | Request opc: 3 - make the surface a toplevel surface
-wlShellSurfaceSetToplevel :: ClMonad ()
-wlShellSurfaceSetToplevel  = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceSetToplevel :: WObj -> ClMonad ()
+wlShellSurfaceSetToplevel wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 3
         putWord16host 8
 
 -- | Request opc: 4 - make the surface a transient surface
-wlShellSurfaceSetTransient :: WObj -> WInt -> WInt -> WUint -> ClMonad ()
-wlShellSurfaceSetTransient parent x y flags = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceSetTransient :: WObj -> WObj -> WInt -> WInt -> WUint -> ClMonad ()
+wlShellSurfaceSetTransient wobj parent x y flags = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 4
@@ -437,9 +408,8 @@ wlShellSurfaceSetTransient parent x y flags = do
         put flags
 
 -- | Request opc: 5 - make the surface a fullscreen surface
-wlShellSurfaceSetFullscreen :: WUint -> WUint -> WObj -> ClMonad ()
-wlShellSurfaceSetFullscreen method framerate output = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceSetFullscreen :: WObj -> WUint -> WUint -> WObj -> ClMonad ()
+wlShellSurfaceSetFullscreen wobj method framerate output = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 5
@@ -449,9 +419,8 @@ wlShellSurfaceSetFullscreen method framerate output = do
         put output
 
 -- | Request opc: 6 - make the surface a popup surface
-wlShellSurfaceSetPopup :: WObj -> WUint -> WObj -> WInt -> WInt -> WUint -> ClMonad ()
-wlShellSurfaceSetPopup seat serial parent x y flags = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceSetPopup :: WObj -> WObj -> WUint -> WObj -> WInt -> WInt -> WUint -> ClMonad ()
+wlShellSurfaceSetPopup wobj seat serial parent x y flags = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 6
@@ -464,9 +433,8 @@ wlShellSurfaceSetPopup seat serial parent x y flags = do
         put flags
 
 -- | Request opc: 7 - make the surface a maximized surface
-wlShellSurfaceSetMaximized :: WObj -> ClMonad ()
-wlShellSurfaceSetMaximized output = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceSetMaximized :: WObj -> WObj -> ClMonad ()
+wlShellSurfaceSetMaximized wobj output = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 7
@@ -474,9 +442,8 @@ wlShellSurfaceSetMaximized output = do
         put output
 
 -- | Request opc: 8 - set surface title
-wlShellSurfaceSetTitle :: WString -> ClMonad ()
-wlShellSurfaceSetTitle title = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceSetTitle :: WObj -> WString -> ClMonad ()
+wlShellSurfaceSetTitle wobj title = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 8
@@ -485,9 +452,8 @@ wlShellSurfaceSetTitle title = do
   where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> []) 
 
 -- | Request opc: 9 - set surface class
-wlShellSurfaceSetClass :: WString -> ClMonad ()
-wlShellSurfaceSetClass xclass = do
-    wobj <- getObjectId cWlShellSurface
+wlShellSurfaceSetClass :: WObj -> WString -> ClMonad ()
+wlShellSurfaceSetClass wobj xclass = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 9
@@ -498,18 +464,16 @@ wlShellSurfaceSetClass xclass = do
 -- ** Interface: WlSurface - an onscreen surface
 
 -- | Request opc: 0 - delete surface
-wlSurfaceDestroy :: ClMonad ()
-wlSurfaceDestroy  = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceDestroy :: WObj -> ClMonad ()
+wlSurfaceDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - set the surface contents
-wlSurfaceAttach :: WObj -> WInt -> WInt -> ClMonad ()
-wlSurfaceAttach buffer x y = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceAttach :: WObj -> WObj -> WInt -> WInt -> ClMonad ()
+wlSurfaceAttach wobj buffer x y = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -519,9 +483,8 @@ wlSurfaceAttach buffer x y = do
         put y
 
 -- | Request opc: 2 - mark part of the surface damaged
-wlSurfaceDamage :: WInt -> WInt -> WInt -> WInt -> ClMonad ()
-wlSurfaceDamage x y width height = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceDamage :: WObj -> WInt -> WInt -> WInt -> WInt -> ClMonad ()
+wlSurfaceDamage wobj x y width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -532,9 +495,8 @@ wlSurfaceDamage x y width height = do
         put height
 
 -- | Request opc: 3 - request a frame throttling hint
-wlSurfaceFrame :: Text -> ClMonad WObj
-wlSurfaceFrame callback = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceFrame :: WObj -> Text -> ClMonad WObj
+wlSurfaceFrame wobj callback = do
     callback' <- createNewId callback
     addRequest $ runByteString $ do
         put wobj
@@ -544,9 +506,8 @@ wlSurfaceFrame callback = do
     pure callback'
 
 -- | Request opc: 4 - set opaque region
-wlSurfaceSetOpaqueRegion :: WObj -> ClMonad ()
-wlSurfaceSetOpaqueRegion region = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceSetOpaqueRegion :: WObj -> WObj -> ClMonad ()
+wlSurfaceSetOpaqueRegion wobj region = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 4
@@ -554,9 +515,8 @@ wlSurfaceSetOpaqueRegion region = do
         put region
 
 -- | Request opc: 5 - set input region
-wlSurfaceSetInputRegion :: WObj -> ClMonad ()
-wlSurfaceSetInputRegion region = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceSetInputRegion :: WObj -> WObj -> ClMonad ()
+wlSurfaceSetInputRegion wobj region = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 5
@@ -564,18 +524,16 @@ wlSurfaceSetInputRegion region = do
         put region
 
 -- | Request opc: 6 - commit pending surface state
-wlSurfaceCommit :: ClMonad ()
-wlSurfaceCommit  = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceCommit :: WObj -> ClMonad ()
+wlSurfaceCommit wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 6
         putWord16host 8
 
 -- | Request opc: 7 - sets the buffer transformation
-wlSurfaceSetBufferTransform :: WInt -> ClMonad ()
-wlSurfaceSetBufferTransform transform = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceSetBufferTransform :: WObj -> WInt -> ClMonad ()
+wlSurfaceSetBufferTransform wobj transform = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 7
@@ -583,9 +541,8 @@ wlSurfaceSetBufferTransform transform = do
         put transform
 
 -- | Request opc: 8 - sets the buffer scaling factor
-wlSurfaceSetBufferScale :: WInt -> ClMonad ()
-wlSurfaceSetBufferScale scale = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceSetBufferScale :: WObj -> WInt -> ClMonad ()
+wlSurfaceSetBufferScale wobj scale = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 8
@@ -593,9 +550,8 @@ wlSurfaceSetBufferScale scale = do
         put scale
 
 -- | Request opc: 9 - mark part of the surface damaged using buffer coordinates
-wlSurfaceDamageBuffer :: WInt -> WInt -> WInt -> WInt -> ClMonad ()
-wlSurfaceDamageBuffer x y width height = do
-    wobj <- getObjectId cWlSurface
+wlSurfaceDamageBuffer :: WObj -> WInt -> WInt -> WInt -> WInt -> ClMonad ()
+wlSurfaceDamageBuffer wobj x y width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 9
@@ -608,9 +564,8 @@ wlSurfaceDamageBuffer x y width height = do
 -- ** Interface: WlSeat - group of input devices
 
 -- | Request opc: 0 - return pointer object
-wlSeatGetPointer :: Text -> ClMonad WObj
-wlSeatGetPointer xid = do
-    wobj <- getObjectId cWlSeat
+wlSeatGetPointer :: WObj -> Text -> ClMonad WObj
+wlSeatGetPointer wobj xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -620,9 +575,8 @@ wlSeatGetPointer xid = do
     pure xid'
 
 -- | Request opc: 1 - return keyboard object
-wlSeatGetKeyboard :: Text -> ClMonad WObj
-wlSeatGetKeyboard xid = do
-    wobj <- getObjectId cWlSeat
+wlSeatGetKeyboard :: WObj -> Text -> ClMonad WObj
+wlSeatGetKeyboard wobj xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -632,9 +586,8 @@ wlSeatGetKeyboard xid = do
     pure xid'
 
 -- | Request opc: 2 - return touch object
-wlSeatGetTouch :: Text -> ClMonad WObj
-wlSeatGetTouch xid = do
-    wobj <- getObjectId cWlSeat
+wlSeatGetTouch :: WObj -> Text -> ClMonad WObj
+wlSeatGetTouch wobj xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -644,9 +597,8 @@ wlSeatGetTouch xid = do
     pure xid'
 
 -- | Request opc: 3 - release the seat object
-wlSeatRelease :: ClMonad ()
-wlSeatRelease  = do
-    wobj <- getObjectId cWlSeat
+wlSeatRelease :: WObj -> ClMonad ()
+wlSeatRelease wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 3
@@ -655,9 +607,8 @@ wlSeatRelease  = do
 -- ** Interface: WlPointer - pointer input device
 
 -- | Request opc: 0 - set the pointer surface
-wlPointerSetCursor :: WUint -> WObj -> WInt -> WInt -> ClMonad ()
-wlPointerSetCursor serial surface hotspotX hotspotY = do
-    wobj <- getObjectId cWlPointer
+wlPointerSetCursor :: WObj -> WUint -> WObj -> WInt -> WInt -> ClMonad ()
+wlPointerSetCursor wobj serial surface hotspotX hotspotY = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -668,9 +619,8 @@ wlPointerSetCursor serial surface hotspotX hotspotY = do
         put hotspotY
 
 -- | Request opc: 1 - release the pointer object
-wlPointerRelease :: ClMonad ()
-wlPointerRelease  = do
-    wobj <- getObjectId cWlPointer
+wlPointerRelease :: WObj -> ClMonad ()
+wlPointerRelease wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -679,9 +629,8 @@ wlPointerRelease  = do
 -- ** Interface: WlKeyboard - keyboard input device
 
 -- | Request opc: 0 - release the keyboard object
-wlKeyboardRelease :: ClMonad ()
-wlKeyboardRelease  = do
-    wobj <- getObjectId cWlKeyboard
+wlKeyboardRelease :: WObj -> ClMonad ()
+wlKeyboardRelease wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -690,9 +639,8 @@ wlKeyboardRelease  = do
 -- ** Interface: WlTouch - touchscreen input device
 
 -- | Request opc: 0 - release the touch object
-wlTouchRelease :: ClMonad ()
-wlTouchRelease  = do
-    wobj <- getObjectId cWlTouch
+wlTouchRelease :: WObj -> ClMonad ()
+wlTouchRelease wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -701,9 +649,8 @@ wlTouchRelease  = do
 -- ** Interface: WlOutput - compositor output region
 
 -- | Request opc: 0 - release the output object
-wlOutputRelease :: ClMonad ()
-wlOutputRelease  = do
-    wobj <- getObjectId cWlOutput
+wlOutputRelease :: WObj -> ClMonad ()
+wlOutputRelease wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
@@ -712,18 +659,16 @@ wlOutputRelease  = do
 -- ** Interface: WlRegion - region interface
 
 -- | Request opc: 0 - destroy region
-wlRegionDestroy :: ClMonad ()
-wlRegionDestroy  = do
-    wobj <- getObjectId cWlRegion
+wlRegionDestroy :: WObj -> ClMonad ()
+wlRegionDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - add rectangle to region
-wlRegionAdd :: WInt -> WInt -> WInt -> WInt -> ClMonad ()
-wlRegionAdd x y width height = do
-    wobj <- getObjectId cWlRegion
+wlRegionAdd :: WObj -> WInt -> WInt -> WInt -> WInt -> ClMonad ()
+wlRegionAdd wobj x y width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -734,9 +679,8 @@ wlRegionAdd x y width height = do
         put height
 
 -- | Request opc: 2 - subtract rectangle from region
-wlRegionSubtract :: WInt -> WInt -> WInt -> WInt -> ClMonad ()
-wlRegionSubtract x y width height = do
-    wobj <- getObjectId cWlRegion
+wlRegionSubtract :: WObj -> WInt -> WInt -> WInt -> WInt -> ClMonad ()
+wlRegionSubtract wobj x y width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -749,18 +693,16 @@ wlRegionSubtract x y width height = do
 -- ** Interface: WlSubcompositor - sub-surface compositing
 
 -- | Request opc: 0 - unbind from the subcompositor interface
-wlSubcompositorDestroy :: ClMonad ()
-wlSubcompositorDestroy  = do
-    wobj <- getObjectId cWlSubcompositor
+wlSubcompositorDestroy :: WObj -> ClMonad ()
+wlSubcompositorDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - give a surface the role sub-surface
-wlSubcompositorGetSubsurface :: Text -> WObj -> WObj -> ClMonad WObj
-wlSubcompositorGetSubsurface xid surface parent = do
-    wobj <- getObjectId cWlSubcompositor
+wlSubcompositorGetSubsurface :: WObj -> Text -> WObj -> WObj -> ClMonad WObj
+wlSubcompositorGetSubsurface wobj xid surface parent = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -774,18 +716,16 @@ wlSubcompositorGetSubsurface xid surface parent = do
 -- ** Interface: WlSubsurface - sub-surface interface to a wl_surface
 
 -- | Request opc: 0 - remove sub-surface interface
-wlSubsurfaceDestroy :: ClMonad ()
-wlSubsurfaceDestroy  = do
-    wobj <- getObjectId cWlSubsurface
+wlSubsurfaceDestroy :: WObj -> ClMonad ()
+wlSubsurfaceDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - reposition the sub-surface
-wlSubsurfaceSetPosition :: WInt -> WInt -> ClMonad ()
-wlSubsurfaceSetPosition x y = do
-    wobj <- getObjectId cWlSubsurface
+wlSubsurfaceSetPosition :: WObj -> WInt -> WInt -> ClMonad ()
+wlSubsurfaceSetPosition wobj x y = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -794,9 +734,8 @@ wlSubsurfaceSetPosition x y = do
         put y
 
 -- | Request opc: 2 - restack the sub-surface
-wlSubsurfacePlaceAbove :: WObj -> ClMonad ()
-wlSubsurfacePlaceAbove sibling = do
-    wobj <- getObjectId cWlSubsurface
+wlSubsurfacePlaceAbove :: WObj -> WObj -> ClMonad ()
+wlSubsurfacePlaceAbove wobj sibling = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -804,9 +743,8 @@ wlSubsurfacePlaceAbove sibling = do
         put sibling
 
 -- | Request opc: 3 - restack the sub-surface
-wlSubsurfacePlaceBelow :: WObj -> ClMonad ()
-wlSubsurfacePlaceBelow sibling = do
-    wobj <- getObjectId cWlSubsurface
+wlSubsurfacePlaceBelow :: WObj -> WObj -> ClMonad ()
+wlSubsurfacePlaceBelow wobj sibling = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 3
@@ -814,18 +752,16 @@ wlSubsurfacePlaceBelow sibling = do
         put sibling
 
 -- | Request opc: 4 - set sub-surface to synchronized mode
-wlSubsurfaceSetSync :: ClMonad ()
-wlSubsurfaceSetSync  = do
-    wobj <- getObjectId cWlSubsurface
+wlSubsurfaceSetSync :: WObj -> ClMonad ()
+wlSubsurfaceSetSync wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 4
         putWord16host 8
 
 -- | Request opc: 5 - set sub-surface to desynchronized mode
-wlSubsurfaceSetDesync :: ClMonad ()
-wlSubsurfaceSetDesync  = do
-    wobj <- getObjectId cWlSubsurface
+wlSubsurfaceSetDesync :: WObj -> ClMonad ()
+wlSubsurfaceSetDesync wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 5
@@ -834,18 +770,16 @@ wlSubsurfaceSetDesync  = do
 -- ** Interface: XdgWmBase - create desktop-style surfaces
 
 -- | Request opc: 0 - destroy xdg_wm_base
-xdgWmBaseDestroy :: ClMonad ()
-xdgWmBaseDestroy  = do
-    wobj <- getObjectId cXdgWmBase
+xdgWmBaseDestroy :: WObj -> ClMonad ()
+xdgWmBaseDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - create a positioner object
-xdgWmBaseCreatePositioner :: Text -> ClMonad WObj
-xdgWmBaseCreatePositioner xid = do
-    wobj <- getObjectId cXdgWmBase
+xdgWmBaseCreatePositioner :: WObj -> Text -> ClMonad WObj
+xdgWmBaseCreatePositioner wobj xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -855,9 +789,8 @@ xdgWmBaseCreatePositioner xid = do
     pure xid'
 
 -- | Request opc: 2 - create a shell surface from a surface
-xdgWmBaseGetXdgSurface :: Text -> WObj -> ClMonad WObj
-xdgWmBaseGetXdgSurface xid surface = do
-    wobj <- getObjectId cXdgWmBase
+xdgWmBaseGetXdgSurface :: WObj -> Text -> WObj -> ClMonad WObj
+xdgWmBaseGetXdgSurface wobj xid surface = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -868,9 +801,8 @@ xdgWmBaseGetXdgSurface xid surface = do
     pure xid'
 
 -- | Request opc: 3 - respond to a ping event
-xdgWmBasePong :: WUint -> ClMonad ()
-xdgWmBasePong serial = do
-    wobj <- getObjectId cXdgWmBase
+xdgWmBasePong :: WObj -> WUint -> ClMonad ()
+xdgWmBasePong wobj serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 3
@@ -880,18 +812,16 @@ xdgWmBasePong serial = do
 -- ** Interface: XdgPositioner - child surface positioner
 
 -- | Request opc: 0 - destroy the xdg_positioner object
-xdgPositionerDestroy :: ClMonad ()
-xdgPositionerDestroy  = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerDestroy :: WObj -> ClMonad ()
+xdgPositionerDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - set the size of the to-be positioned rectangle
-xdgPositionerSetSize :: WInt -> WInt -> ClMonad ()
-xdgPositionerSetSize width height = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetSize :: WObj -> WInt -> WInt -> ClMonad ()
+xdgPositionerSetSize wobj width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -900,9 +830,8 @@ xdgPositionerSetSize width height = do
         put height
 
 -- | Request opc: 2 - set the anchor rectangle within the parent surface
-xdgPositionerSetAnchorRect :: WInt -> WInt -> WInt -> WInt -> ClMonad ()
-xdgPositionerSetAnchorRect x y width height = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetAnchorRect :: WObj -> WInt -> WInt -> WInt -> WInt -> ClMonad ()
+xdgPositionerSetAnchorRect wobj x y width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -913,9 +842,8 @@ xdgPositionerSetAnchorRect x y width height = do
         put height
 
 -- | Request opc: 3 - set anchor rectangle anchor
-xdgPositionerSetAnchor :: WUint -> ClMonad ()
-xdgPositionerSetAnchor anchor = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetAnchor :: WObj -> WUint -> ClMonad ()
+xdgPositionerSetAnchor wobj anchor = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 3
@@ -923,9 +851,8 @@ xdgPositionerSetAnchor anchor = do
         put anchor
 
 -- | Request opc: 4 - set child surface gravity
-xdgPositionerSetGravity :: WUint -> ClMonad ()
-xdgPositionerSetGravity gravity = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetGravity :: WObj -> WUint -> ClMonad ()
+xdgPositionerSetGravity wobj gravity = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 4
@@ -933,9 +860,8 @@ xdgPositionerSetGravity gravity = do
         put gravity
 
 -- | Request opc: 5 - set the adjustment to be done when constrained
-xdgPositionerSetConstraintAdjustment :: WUint -> ClMonad ()
-xdgPositionerSetConstraintAdjustment constraintAdjustment = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetConstraintAdjustment :: WObj -> WUint -> ClMonad ()
+xdgPositionerSetConstraintAdjustment wobj constraintAdjustment = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 5
@@ -943,9 +869,8 @@ xdgPositionerSetConstraintAdjustment constraintAdjustment = do
         put constraintAdjustment
 
 -- | Request opc: 6 - set surface position offset
-xdgPositionerSetOffset :: WInt -> WInt -> ClMonad ()
-xdgPositionerSetOffset x y = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetOffset :: WObj -> WInt -> WInt -> ClMonad ()
+xdgPositionerSetOffset wobj x y = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 6
@@ -954,18 +879,16 @@ xdgPositionerSetOffset x y = do
         put y
 
 -- | Request opc: 7 - continuously reconstrain the surface
-xdgPositionerSetReactive :: ClMonad ()
-xdgPositionerSetReactive  = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetReactive :: WObj -> ClMonad ()
+xdgPositionerSetReactive wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 7
         putWord16host 8
 
 -- | Request opc: 8 - 
-xdgPositionerSetParentSize :: WInt -> WInt -> ClMonad ()
-xdgPositionerSetParentSize parentWidth parentHeight = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetParentSize :: WObj -> WInt -> WInt -> ClMonad ()
+xdgPositionerSetParentSize wobj parentWidth parentHeight = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 8
@@ -974,9 +897,8 @@ xdgPositionerSetParentSize parentWidth parentHeight = do
         put parentHeight
 
 -- | Request opc: 9 - set parent configure this is a response to
-xdgPositionerSetParentConfigure :: WUint -> ClMonad ()
-xdgPositionerSetParentConfigure serial = do
-    wobj <- getObjectId cXdgPositioner
+xdgPositionerSetParentConfigure :: WObj -> WUint -> ClMonad ()
+xdgPositionerSetParentConfigure wobj serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 9
@@ -986,18 +908,16 @@ xdgPositionerSetParentConfigure serial = do
 -- ** Interface: XdgSurface - desktop user interface surface base interface
 
 -- | Request opc: 0 - destroy the xdg_surface
-xdgSurfaceDestroy :: ClMonad ()
-xdgSurfaceDestroy  = do
-    wobj <- getObjectId cXdgSurface
+xdgSurfaceDestroy :: WObj -> ClMonad ()
+xdgSurfaceDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - assign the xdg_toplevel surface role
-xdgSurfaceGetToplevel :: Text -> ClMonad WObj
-xdgSurfaceGetToplevel xid = do
-    wobj <- getObjectId cXdgSurface
+xdgSurfaceGetToplevel :: WObj -> Text -> ClMonad WObj
+xdgSurfaceGetToplevel wobj xid = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -1007,9 +927,8 @@ xdgSurfaceGetToplevel xid = do
     pure xid'
 
 -- | Request opc: 2 - assign the xdg_popup surface role
-xdgSurfaceGetPopup :: Text -> WObj -> WObj -> ClMonad WObj
-xdgSurfaceGetPopup xid parent positioner = do
-    wobj <- getObjectId cXdgSurface
+xdgSurfaceGetPopup :: WObj -> Text -> WObj -> WObj -> ClMonad WObj
+xdgSurfaceGetPopup wobj xid parent positioner = do
     xid' <- createNewId xid
     addRequest $ runByteString $ do
         put wobj
@@ -1021,9 +940,8 @@ xdgSurfaceGetPopup xid parent positioner = do
     pure xid'
 
 -- | Request opc: 3 - set the new window geometry
-xdgSurfaceSetWindowGeometry :: WInt -> WInt -> WInt -> WInt -> ClMonad ()
-xdgSurfaceSetWindowGeometry x y width height = do
-    wobj <- getObjectId cXdgSurface
+xdgSurfaceSetWindowGeometry :: WObj -> WInt -> WInt -> WInt -> WInt -> ClMonad ()
+xdgSurfaceSetWindowGeometry wobj x y width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 3
@@ -1034,9 +952,8 @@ xdgSurfaceSetWindowGeometry x y width height = do
         put height
 
 -- | Request opc: 4 - ack a configure event
-xdgSurfaceAckConfigure :: WUint -> ClMonad ()
-xdgSurfaceAckConfigure serial = do
-    wobj <- getObjectId cXdgSurface
+xdgSurfaceAckConfigure :: WObj -> WUint -> ClMonad ()
+xdgSurfaceAckConfigure wobj serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 4
@@ -1046,18 +963,16 @@ xdgSurfaceAckConfigure serial = do
 -- ** Interface: XdgToplevel - toplevel surface
 
 -- | Request opc: 0 - destroy the xdg_toplevel
-xdgToplevelDestroy :: ClMonad ()
-xdgToplevelDestroy  = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelDestroy :: WObj -> ClMonad ()
+xdgToplevelDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - set the parent of this surface
-xdgToplevelSetParent :: WObj -> ClMonad ()
-xdgToplevelSetParent parent = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelSetParent :: WObj -> WObj -> ClMonad ()
+xdgToplevelSetParent wobj parent = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -1065,9 +980,8 @@ xdgToplevelSetParent parent = do
         put parent
 
 -- | Request opc: 2 - set surface title
-xdgToplevelSetTitle :: WString -> ClMonad ()
-xdgToplevelSetTitle title = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelSetTitle :: WObj -> WString -> ClMonad ()
+xdgToplevelSetTitle wobj title = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -1076,9 +990,8 @@ xdgToplevelSetTitle title = do
   where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> []) 
 
 -- | Request opc: 3 - set application ID
-xdgToplevelSetAppId :: WString -> ClMonad ()
-xdgToplevelSetAppId appId = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelSetAppId :: WObj -> WString -> ClMonad ()
+xdgToplevelSetAppId wobj appId = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 3
@@ -1087,9 +1000,8 @@ xdgToplevelSetAppId appId = do
   where len = 8 + sum (calcWStringLength <$> [appId])  + sum (calcWArrayLength  <$> []) 
 
 -- | Request opc: 4 - show the window menu
-xdgToplevelShowWindowMenu :: WObj -> WUint -> WInt -> WInt -> ClMonad ()
-xdgToplevelShowWindowMenu seat serial x y = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelShowWindowMenu :: WObj -> WObj -> WUint -> WInt -> WInt -> ClMonad ()
+xdgToplevelShowWindowMenu wobj seat serial x y = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 4
@@ -1100,9 +1012,8 @@ xdgToplevelShowWindowMenu seat serial x y = do
         put y
 
 -- | Request opc: 5 - start an interactive move
-xdgToplevelMove :: WObj -> WUint -> ClMonad ()
-xdgToplevelMove seat serial = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelMove :: WObj -> WObj -> WUint -> ClMonad ()
+xdgToplevelMove wobj seat serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 5
@@ -1111,9 +1022,8 @@ xdgToplevelMove seat serial = do
         put serial
 
 -- | Request opc: 6 - start an interactive resize
-xdgToplevelResize :: WObj -> WUint -> WUint -> ClMonad ()
-xdgToplevelResize seat serial edges = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelResize :: WObj -> WObj -> WUint -> WUint -> ClMonad ()
+xdgToplevelResize wobj seat serial edges = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 6
@@ -1123,9 +1033,8 @@ xdgToplevelResize seat serial edges = do
         put edges
 
 -- | Request opc: 7 - set the maximum size
-xdgToplevelSetMaxSize :: WInt -> WInt -> ClMonad ()
-xdgToplevelSetMaxSize width height = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelSetMaxSize :: WObj -> WInt -> WInt -> ClMonad ()
+xdgToplevelSetMaxSize wobj width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 7
@@ -1134,9 +1043,8 @@ xdgToplevelSetMaxSize width height = do
         put height
 
 -- | Request opc: 8 - set the minimum size
-xdgToplevelSetMinSize :: WInt -> WInt -> ClMonad ()
-xdgToplevelSetMinSize width height = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelSetMinSize :: WObj -> WInt -> WInt -> ClMonad ()
+xdgToplevelSetMinSize wobj width height = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 8
@@ -1145,27 +1053,24 @@ xdgToplevelSetMinSize width height = do
         put height
 
 -- | Request opc: 9 - maximize the window
-xdgToplevelSetMaximized :: ClMonad ()
-xdgToplevelSetMaximized  = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelSetMaximized :: WObj -> ClMonad ()
+xdgToplevelSetMaximized wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 9
         putWord16host 8
 
 -- | Request opc: 10 - unmaximize the window
-xdgToplevelUnsetMaximized :: ClMonad ()
-xdgToplevelUnsetMaximized  = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelUnsetMaximized :: WObj -> ClMonad ()
+xdgToplevelUnsetMaximized wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 10
         putWord16host 8
 
 -- | Request opc: 11 - set the window as fullscreen on an output
-xdgToplevelSetFullscreen :: WObj -> ClMonad ()
-xdgToplevelSetFullscreen output = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelSetFullscreen :: WObj -> WObj -> ClMonad ()
+xdgToplevelSetFullscreen wobj output = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 11
@@ -1173,18 +1078,16 @@ xdgToplevelSetFullscreen output = do
         put output
 
 -- | Request opc: 12 - unset the window as fullscreen
-xdgToplevelUnsetFullscreen :: ClMonad ()
-xdgToplevelUnsetFullscreen  = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelUnsetFullscreen :: WObj -> ClMonad ()
+xdgToplevelUnsetFullscreen wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 12
         putWord16host 8
 
 -- | Request opc: 13 - set the window as minimized
-xdgToplevelSetMinimized :: ClMonad ()
-xdgToplevelSetMinimized  = do
-    wobj <- getObjectId cXdgToplevel
+xdgToplevelSetMinimized :: WObj -> ClMonad ()
+xdgToplevelSetMinimized wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 13
@@ -1193,18 +1096,16 @@ xdgToplevelSetMinimized  = do
 -- ** Interface: XdgPopup - short-lived, popup surfaces for menus
 
 -- | Request opc: 0 - remove xdg_popup interface
-xdgPopupDestroy :: ClMonad ()
-xdgPopupDestroy  = do
-    wobj <- getObjectId cXdgPopup
+xdgPopupDestroy :: WObj -> ClMonad ()
+xdgPopupDestroy wobj = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 0
         putWord16host 8
 
 -- | Request opc: 1 - make the popup take an explicit grab
-xdgPopupGrab :: WObj -> WUint -> ClMonad ()
-xdgPopupGrab seat serial = do
-    wobj <- getObjectId cXdgPopup
+xdgPopupGrab :: WObj -> WObj -> WUint -> ClMonad ()
+xdgPopupGrab wobj seat serial = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 1
@@ -1213,9 +1114,8 @@ xdgPopupGrab seat serial = do
         put serial
 
 -- | Request opc: 2 - recalculate the popup's location
-xdgPopupReposition :: WObj -> WUint -> ClMonad ()
-xdgPopupReposition positioner token = do
-    wobj <- getObjectId cXdgPopup
+xdgPopupReposition :: WObj -> WObj -> WUint -> ClMonad ()
+xdgPopupReposition wobj positioner token = do
     addRequest $ runByteString $ do
         put wobj
         put $ WOpc 2
@@ -1227,367 +1127,367 @@ xdgPopupReposition positioner token = do
 -- * Event Handling
 -- ----------------------------------------------------------------------
 -- ** Event Handling Function Types
-type TwlDisplayError = WObj -> WUint -> WString -> ClMonad ()
-type TwlDisplayDeleteId = WUint -> ClMonad ()
-type TwlRegistryGlobal = WUint -> WString -> WUint -> ClMonad ()
-type TwlRegistryGlobalRemove = WUint -> ClMonad ()
-type TwlCallbackDone = WUint -> ClMonad ()
-type TwlShmFormat = WUint -> ClMonad ()
-type TwlBufferRelease = ClMonad ()
-type TwlDataOfferOffer = WString -> ClMonad ()
-type TwlDataOfferSourceActions = WUint -> ClMonad ()
-type TwlDataOfferAction = WUint -> ClMonad ()
-type TwlDataSourceTarget = WString -> ClMonad ()
-type TwlDataSourceSend = WString -> Fd -> ClMonad ()
-type TwlDataSourceCancelled = ClMonad ()
-type TwlDataSourceDndDropPerformed = ClMonad ()
-type TwlDataSourceDndFinished = ClMonad ()
-type TwlDataSourceAction = WUint -> ClMonad ()
-type TwlDataDeviceDataOffer = WNewId -> ClMonad ()
-type TwlDataDeviceEnter = WUint -> WObj -> WFixed -> WFixed -> WObj -> ClMonad ()
-type TwlDataDeviceLeave = ClMonad ()
-type TwlDataDeviceMotion = WUint -> WFixed -> WFixed -> ClMonad ()
-type TwlDataDeviceDrop = ClMonad ()
-type TwlDataDeviceSelection = WObj -> ClMonad ()
-type TwlShellSurfacePing = WUint -> ClMonad ()
-type TwlShellSurfaceConfigure = WUint -> WInt -> WInt -> ClMonad ()
-type TwlShellSurfacePopupDone = ClMonad ()
-type TwlSurfaceEnter = WObj -> ClMonad ()
-type TwlSurfaceLeave = WObj -> ClMonad ()
-type TwlSeatCapabilities = WUint -> ClMonad ()
-type TwlSeatName = WString -> ClMonad ()
-type TwlPointerEnter = WUint -> WObj -> WFixed -> WFixed -> ClMonad ()
-type TwlPointerLeave = WUint -> WObj -> ClMonad ()
-type TwlPointerMotion = WUint -> WFixed -> WFixed -> ClMonad ()
-type TwlPointerButton = WUint -> WUint -> WUint -> WUint -> ClMonad ()
-type TwlPointerAxis = WUint -> WUint -> WFixed -> ClMonad ()
-type TwlPointerFrame = ClMonad ()
-type TwlPointerAxisSource = WUint -> ClMonad ()
-type TwlPointerAxisStop = WUint -> WUint -> ClMonad ()
-type TwlPointerAxisDiscrete = WUint -> WInt -> ClMonad ()
-type TwlKeyboardKeymap = WUint -> Fd -> WUint -> ClMonad ()
-type TwlKeyboardEnter = WUint -> WObj -> WArray -> ClMonad ()
-type TwlKeyboardLeave = WUint -> WObj -> ClMonad ()
-type TwlKeyboardKey = WUint -> WUint -> WUint -> WUint -> ClMonad ()
-type TwlKeyboardModifiers = WUint -> WUint -> WUint -> WUint -> WUint -> ClMonad ()
-type TwlKeyboardRepeatInfo = WInt -> WInt -> ClMonad ()
-type TwlTouchDown = WUint -> WUint -> WObj -> WInt -> WFixed -> WFixed -> ClMonad ()
-type TwlTouchUp = WUint -> WUint -> WInt -> ClMonad ()
-type TwlTouchMotion = WUint -> WInt -> WFixed -> WFixed -> ClMonad ()
-type TwlTouchFrame = ClMonad ()
-type TwlTouchCancel = ClMonad ()
-type TwlTouchShape = WInt -> WFixed -> WFixed -> ClMonad ()
-type TwlTouchOrientation = WInt -> WFixed -> ClMonad ()
-type TwlOutputGeometry = WInt -> WInt -> WInt -> WInt -> WInt -> WString -> WString -> WInt -> ClMonad ()
-type TwlOutputMode = WUint -> WInt -> WInt -> WInt -> ClMonad ()
-type TwlOutputDone = ClMonad ()
-type TwlOutputScale = WInt -> ClMonad ()
-type TxdgWmBasePing = WUint -> ClMonad ()
-type TxdgSurfaceConfigure = WUint -> ClMonad ()
-type TxdgToplevelConfigure = WInt -> WInt -> WArray -> ClMonad ()
-type TxdgToplevelClose = ClMonad ()
-type TxdgPopupConfigure = WInt -> WInt -> WInt -> WInt -> ClMonad ()
-type TxdgPopupPopupDone = ClMonad ()
-type TxdgPopupRepositioned = WUint -> ClMonad ()
+type TwlDisplayError = WObj -> WObj -> WUint -> WString -> ClMonad ()
+type TwlDisplayDeleteId = WObj -> WUint -> ClMonad ()
+type TwlRegistryGlobal = WObj -> WUint -> WString -> WUint -> ClMonad ()
+type TwlRegistryGlobalRemove = WObj -> WUint -> ClMonad ()
+type TwlCallbackDone = WObj -> WUint -> ClMonad ()
+type TwlShmFormat = WObj -> WUint -> ClMonad ()
+type TwlBufferRelease = WObj -> ClMonad ()
+type TwlDataOfferOffer = WObj -> WString -> ClMonad ()
+type TwlDataOfferSourceActions = WObj -> WUint -> ClMonad ()
+type TwlDataOfferAction = WObj -> WUint -> ClMonad ()
+type TwlDataSourceTarget = WObj -> WString -> ClMonad ()
+type TwlDataSourceSend = WObj -> WString -> Fd -> ClMonad ()
+type TwlDataSourceCancelled = WObj -> ClMonad ()
+type TwlDataSourceDndDropPerformed = WObj -> ClMonad ()
+type TwlDataSourceDndFinished = WObj -> ClMonad ()
+type TwlDataSourceAction = WObj -> WUint -> ClMonad ()
+type TwlDataDeviceDataOffer = WObj -> WNewId -> ClMonad ()
+type TwlDataDeviceEnter = WObj -> WUint -> WObj -> WFixed -> WFixed -> WObj -> ClMonad ()
+type TwlDataDeviceLeave = WObj -> ClMonad ()
+type TwlDataDeviceMotion = WObj -> WUint -> WFixed -> WFixed -> ClMonad ()
+type TwlDataDeviceDrop = WObj -> ClMonad ()
+type TwlDataDeviceSelection = WObj -> WObj -> ClMonad ()
+type TwlShellSurfacePing = WObj -> WUint -> ClMonad ()
+type TwlShellSurfaceConfigure = WObj -> WUint -> WInt -> WInt -> ClMonad ()
+type TwlShellSurfacePopupDone = WObj -> ClMonad ()
+type TwlSurfaceEnter = WObj -> WObj -> ClMonad ()
+type TwlSurfaceLeave = WObj -> WObj -> ClMonad ()
+type TwlSeatCapabilities = WObj -> WUint -> ClMonad ()
+type TwlSeatName = WObj -> WString -> ClMonad ()
+type TwlPointerEnter = WObj -> WUint -> WObj -> WFixed -> WFixed -> ClMonad ()
+type TwlPointerLeave = WObj -> WUint -> WObj -> ClMonad ()
+type TwlPointerMotion = WObj -> WUint -> WFixed -> WFixed -> ClMonad ()
+type TwlPointerButton = WObj -> WUint -> WUint -> WUint -> WUint -> ClMonad ()
+type TwlPointerAxis = WObj -> WUint -> WUint -> WFixed -> ClMonad ()
+type TwlPointerFrame = WObj -> ClMonad ()
+type TwlPointerAxisSource = WObj -> WUint -> ClMonad ()
+type TwlPointerAxisStop = WObj -> WUint -> WUint -> ClMonad ()
+type TwlPointerAxisDiscrete = WObj -> WUint -> WInt -> ClMonad ()
+type TwlKeyboardKeymap = WObj -> WUint -> Fd -> WUint -> ClMonad ()
+type TwlKeyboardEnter = WObj -> WUint -> WObj -> WArray -> ClMonad ()
+type TwlKeyboardLeave = WObj -> WUint -> WObj -> ClMonad ()
+type TwlKeyboardKey = WObj -> WUint -> WUint -> WUint -> WUint -> ClMonad ()
+type TwlKeyboardModifiers = WObj -> WUint -> WUint -> WUint -> WUint -> WUint -> ClMonad ()
+type TwlKeyboardRepeatInfo = WObj -> WInt -> WInt -> ClMonad ()
+type TwlTouchDown = WObj -> WUint -> WUint -> WObj -> WInt -> WFixed -> WFixed -> ClMonad ()
+type TwlTouchUp = WObj -> WUint -> WUint -> WInt -> ClMonad ()
+type TwlTouchMotion = WObj -> WUint -> WInt -> WFixed -> WFixed -> ClMonad ()
+type TwlTouchFrame = WObj -> ClMonad ()
+type TwlTouchCancel = WObj -> ClMonad ()
+type TwlTouchShape = WObj -> WInt -> WFixed -> WFixed -> ClMonad ()
+type TwlTouchOrientation = WObj -> WInt -> WFixed -> ClMonad ()
+type TwlOutputGeometry = WObj -> WInt -> WInt -> WInt -> WInt -> WInt -> WString -> WString -> WInt -> ClMonad ()
+type TwlOutputMode = WObj -> WUint -> WInt -> WInt -> WInt -> ClMonad ()
+type TwlOutputDone = WObj -> ClMonad ()
+type TwlOutputScale = WObj -> WInt -> ClMonad ()
+type TxdgWmBasePing = WObj -> WUint -> ClMonad ()
+type TxdgSurfaceConfigure = WObj -> WUint -> ClMonad ()
+type TxdgToplevelConfigure = WObj -> WInt -> WInt -> WArray -> ClMonad ()
+type TxdgToplevelClose = WObj -> ClMonad ()
+type TxdgPopupConfigure = WObj -> WInt -> WInt -> WInt -> WInt -> ClMonad ()
+type TxdgPopupPopupDone = WObj -> ClMonad ()
+type TxdgPopupRepositioned = WObj -> WUint -> ClMonad ()
 
 -- ** Proxy Functions for all Events
 
 pwlDisplayError :: Maybe TwlDisplayError -> WInputMsg -> ClMonad ()
 pwlDisplayError Nothing _ = pure ()
 pwlDisplayError (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlDisplayDeleteId :: Maybe TwlDisplayDeleteId -> WInputMsg -> ClMonad ()
 pwlDisplayDeleteId Nothing _ = pure ()
 pwlDisplayDeleteId (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlRegistryGlobal :: Maybe TwlRegistryGlobal -> WInputMsg -> ClMonad ()
 pwlRegistryGlobal Nothing _ = pure ()
 pwlRegistryGlobal (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlRegistryGlobalRemove :: Maybe TwlRegistryGlobalRemove -> WInputMsg -> ClMonad ()
 pwlRegistryGlobalRemove Nothing _ = pure ()
 pwlRegistryGlobalRemove (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlCallbackDone :: Maybe TwlCallbackDone -> WInputMsg -> ClMonad ()
 pwlCallbackDone Nothing _ = pure ()
 pwlCallbackDone (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlShmFormat :: Maybe TwlShmFormat -> WInputMsg -> ClMonad ()
 pwlShmFormat Nothing _ = pure ()
 pwlShmFormat (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlBufferRelease :: Maybe TwlBufferRelease -> WInputMsg -> ClMonad ()
 pwlBufferRelease Nothing _ = pure ()
-pwlBufferRelease (Just f) _msg = f
+pwlBufferRelease (Just f) msg = f (winpObj msg)
 
 pwlDataOfferOffer :: Maybe TwlDataOfferOffer -> WInputMsg -> ClMonad ()
 pwlDataOfferOffer Nothing _ = pure ()
 pwlDataOfferOffer (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlDataOfferSourceActions :: Maybe TwlDataOfferSourceActions -> WInputMsg -> ClMonad ()
 pwlDataOfferSourceActions Nothing _ = pure ()
 pwlDataOfferSourceActions (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlDataOfferAction :: Maybe TwlDataOfferAction -> WInputMsg -> ClMonad ()
 pwlDataOfferAction Nothing _ = pure ()
 pwlDataOfferAction (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlDataSourceTarget :: Maybe TwlDataSourceTarget -> WInputMsg -> ClMonad ()
 pwlDataSourceTarget Nothing _ = pure ()
 pwlDataSourceTarget (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlDataSourceSend :: Maybe TwlDataSourceSend -> WInputMsg -> ClMonad ()
 pwlDataSourceSend Nothing _ = pure ()
 pwlDataSourceSend (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get
+    where g = f (winpObj msg) <$> get <*> get
 
 pwlDataSourceCancelled :: Maybe TwlDataSourceCancelled -> WInputMsg -> ClMonad ()
 pwlDataSourceCancelled Nothing _ = pure ()
-pwlDataSourceCancelled (Just f) _msg = f
+pwlDataSourceCancelled (Just f) msg = f (winpObj msg)
 
 pwlDataSourceDndDropPerformed :: Maybe TwlDataSourceDndDropPerformed -> WInputMsg -> ClMonad ()
 pwlDataSourceDndDropPerformed Nothing _ = pure ()
-pwlDataSourceDndDropPerformed (Just f) _msg = f
+pwlDataSourceDndDropPerformed (Just f) msg = f (winpObj msg)
 
 pwlDataSourceDndFinished :: Maybe TwlDataSourceDndFinished -> WInputMsg -> ClMonad ()
 pwlDataSourceDndFinished Nothing _ = pure ()
-pwlDataSourceDndFinished (Just f) _msg = f
+pwlDataSourceDndFinished (Just f) msg = f (winpObj msg)
 
 pwlDataSourceAction :: Maybe TwlDataSourceAction -> WInputMsg -> ClMonad ()
 pwlDataSourceAction Nothing _ = pure ()
 pwlDataSourceAction (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlDataDeviceDataOffer :: Maybe TwlDataDeviceDataOffer -> WInputMsg -> ClMonad ()
 pwlDataDeviceDataOffer Nothing _ = pure ()
 pwlDataDeviceDataOffer (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlDataDeviceEnter :: Maybe TwlDataDeviceEnter -> WInputMsg -> ClMonad ()
 pwlDataDeviceEnter Nothing _ = pure ()
 pwlDataDeviceEnter (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get <*> get
 
 pwlDataDeviceLeave :: Maybe TwlDataDeviceLeave -> WInputMsg -> ClMonad ()
 pwlDataDeviceLeave Nothing _ = pure ()
-pwlDataDeviceLeave (Just f) _msg = f
+pwlDataDeviceLeave (Just f) msg = f (winpObj msg)
 
 pwlDataDeviceMotion :: Maybe TwlDataDeviceMotion -> WInputMsg -> ClMonad ()
 pwlDataDeviceMotion Nothing _ = pure ()
 pwlDataDeviceMotion (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlDataDeviceDrop :: Maybe TwlDataDeviceDrop -> WInputMsg -> ClMonad ()
 pwlDataDeviceDrop Nothing _ = pure ()
-pwlDataDeviceDrop (Just f) _msg = f
+pwlDataDeviceDrop (Just f) msg = f (winpObj msg)
 
 pwlDataDeviceSelection :: Maybe TwlDataDeviceSelection -> WInputMsg -> ClMonad ()
 pwlDataDeviceSelection Nothing _ = pure ()
 pwlDataDeviceSelection (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlShellSurfacePing :: Maybe TwlShellSurfacePing -> WInputMsg -> ClMonad ()
 pwlShellSurfacePing Nothing _ = pure ()
 pwlShellSurfacePing (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlShellSurfaceConfigure :: Maybe TwlShellSurfaceConfigure -> WInputMsg -> ClMonad ()
 pwlShellSurfaceConfigure Nothing _ = pure ()
 pwlShellSurfaceConfigure (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlShellSurfacePopupDone :: Maybe TwlShellSurfacePopupDone -> WInputMsg -> ClMonad ()
 pwlShellSurfacePopupDone Nothing _ = pure ()
-pwlShellSurfacePopupDone (Just f) _msg = f
+pwlShellSurfacePopupDone (Just f) msg = f (winpObj msg)
 
 pwlSurfaceEnter :: Maybe TwlSurfaceEnter -> WInputMsg -> ClMonad ()
 pwlSurfaceEnter Nothing _ = pure ()
 pwlSurfaceEnter (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlSurfaceLeave :: Maybe TwlSurfaceLeave -> WInputMsg -> ClMonad ()
 pwlSurfaceLeave Nothing _ = pure ()
 pwlSurfaceLeave (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlSeatCapabilities :: Maybe TwlSeatCapabilities -> WInputMsg -> ClMonad ()
 pwlSeatCapabilities Nothing _ = pure ()
 pwlSeatCapabilities (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlSeatName :: Maybe TwlSeatName -> WInputMsg -> ClMonad ()
 pwlSeatName Nothing _ = pure ()
 pwlSeatName (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlPointerEnter :: Maybe TwlPointerEnter -> WInputMsg -> ClMonad ()
 pwlPointerEnter Nothing _ = pure ()
 pwlPointerEnter (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get
 
 pwlPointerLeave :: Maybe TwlPointerLeave -> WInputMsg -> ClMonad ()
 pwlPointerLeave Nothing _ = pure ()
 pwlPointerLeave (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get
+    where g = f (winpObj msg) <$> get <*> get
 
 pwlPointerMotion :: Maybe TwlPointerMotion -> WInputMsg -> ClMonad ()
 pwlPointerMotion Nothing _ = pure ()
 pwlPointerMotion (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlPointerButton :: Maybe TwlPointerButton -> WInputMsg -> ClMonad ()
 pwlPointerButton Nothing _ = pure ()
 pwlPointerButton (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get
 
 pwlPointerAxis :: Maybe TwlPointerAxis -> WInputMsg -> ClMonad ()
 pwlPointerAxis Nothing _ = pure ()
 pwlPointerAxis (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlPointerFrame :: Maybe TwlPointerFrame -> WInputMsg -> ClMonad ()
 pwlPointerFrame Nothing _ = pure ()
-pwlPointerFrame (Just f) _msg = f
+pwlPointerFrame (Just f) msg = f (winpObj msg)
 
 pwlPointerAxisSource :: Maybe TwlPointerAxisSource -> WInputMsg -> ClMonad ()
 pwlPointerAxisSource Nothing _ = pure ()
 pwlPointerAxisSource (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pwlPointerAxisStop :: Maybe TwlPointerAxisStop -> WInputMsg -> ClMonad ()
 pwlPointerAxisStop Nothing _ = pure ()
 pwlPointerAxisStop (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get
+    where g = f (winpObj msg) <$> get <*> get
 
 pwlPointerAxisDiscrete :: Maybe TwlPointerAxisDiscrete -> WInputMsg -> ClMonad ()
 pwlPointerAxisDiscrete Nothing _ = pure ()
 pwlPointerAxisDiscrete (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get
+    where g = f (winpObj msg) <$> get <*> get
 
 pwlKeyboardKeymap :: Maybe TwlKeyboardKeymap -> WInputMsg -> ClMonad ()
 pwlKeyboardKeymap Nothing _ = pure ()
 pwlKeyboardKeymap (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlKeyboardEnter :: Maybe TwlKeyboardEnter -> WInputMsg -> ClMonad ()
 pwlKeyboardEnter Nothing _ = pure ()
 pwlKeyboardEnter (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlKeyboardLeave :: Maybe TwlKeyboardLeave -> WInputMsg -> ClMonad ()
 pwlKeyboardLeave Nothing _ = pure ()
 pwlKeyboardLeave (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get
+    where g = f (winpObj msg) <$> get <*> get
 
 pwlKeyboardKey :: Maybe TwlKeyboardKey -> WInputMsg -> ClMonad ()
 pwlKeyboardKey Nothing _ = pure ()
 pwlKeyboardKey (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get
 
 pwlKeyboardModifiers :: Maybe TwlKeyboardModifiers -> WInputMsg -> ClMonad ()
 pwlKeyboardModifiers Nothing _ = pure ()
 pwlKeyboardModifiers (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get <*> get
 
 pwlKeyboardRepeatInfo :: Maybe TwlKeyboardRepeatInfo -> WInputMsg -> ClMonad ()
 pwlKeyboardRepeatInfo Nothing _ = pure ()
 pwlKeyboardRepeatInfo (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get
+    where g = f (winpObj msg) <$> get <*> get
 
 pwlTouchDown :: Maybe TwlTouchDown -> WInputMsg -> ClMonad ()
 pwlTouchDown Nothing _ = pure ()
 pwlTouchDown (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get <*> get <*> get
 
 pwlTouchUp :: Maybe TwlTouchUp -> WInputMsg -> ClMonad ()
 pwlTouchUp Nothing _ = pure ()
 pwlTouchUp (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlTouchMotion :: Maybe TwlTouchMotion -> WInputMsg -> ClMonad ()
 pwlTouchMotion Nothing _ = pure ()
 pwlTouchMotion (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get
 
 pwlTouchFrame :: Maybe TwlTouchFrame -> WInputMsg -> ClMonad ()
 pwlTouchFrame Nothing _ = pure ()
-pwlTouchFrame (Just f) _msg = f
+pwlTouchFrame (Just f) msg = f (winpObj msg)
 
 pwlTouchCancel :: Maybe TwlTouchCancel -> WInputMsg -> ClMonad ()
 pwlTouchCancel Nothing _ = pure ()
-pwlTouchCancel (Just f) _msg = f
+pwlTouchCancel (Just f) msg = f (winpObj msg)
 
 pwlTouchShape :: Maybe TwlTouchShape -> WInputMsg -> ClMonad ()
 pwlTouchShape Nothing _ = pure ()
 pwlTouchShape (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pwlTouchOrientation :: Maybe TwlTouchOrientation -> WInputMsg -> ClMonad ()
 pwlTouchOrientation Nothing _ = pure ()
 pwlTouchOrientation (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get
+    where g = f (winpObj msg) <$> get <*> get
 
 pwlOutputGeometry :: Maybe TwlOutputGeometry -> WInputMsg -> ClMonad ()
 pwlOutputGeometry Nothing _ = pure ()
 pwlOutputGeometry (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get <*> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get <*> get <*> get <*> get <*> get
 
 pwlOutputMode :: Maybe TwlOutputMode -> WInputMsg -> ClMonad ()
 pwlOutputMode Nothing _ = pure ()
 pwlOutputMode (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get
 
 pwlOutputDone :: Maybe TwlOutputDone -> WInputMsg -> ClMonad ()
 pwlOutputDone Nothing _ = pure ()
-pwlOutputDone (Just f) _msg = f
+pwlOutputDone (Just f) msg = f (winpObj msg)
 
 pwlOutputScale :: Maybe TwlOutputScale -> WInputMsg -> ClMonad ()
 pwlOutputScale Nothing _ = pure ()
 pwlOutputScale (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pxdgWmBasePing :: Maybe TxdgWmBasePing -> WInputMsg -> ClMonad ()
 pxdgWmBasePing Nothing _ = pure ()
 pxdgWmBasePing (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pxdgSurfaceConfigure :: Maybe TxdgSurfaceConfigure -> WInputMsg -> ClMonad ()
 pxdgSurfaceConfigure Nothing _ = pure ()
 pxdgSurfaceConfigure (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 pxdgToplevelConfigure :: Maybe TxdgToplevelConfigure -> WInputMsg -> ClMonad ()
 pxdgToplevelConfigure Nothing _ = pure ()
 pxdgToplevelConfigure (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get
 
 pxdgToplevelClose :: Maybe TxdgToplevelClose -> WInputMsg -> ClMonad ()
 pxdgToplevelClose Nothing _ = pure ()
-pxdgToplevelClose (Just f) _msg = f
+pxdgToplevelClose (Just f) msg = f (winpObj msg)
 
 pxdgPopupConfigure :: Maybe TxdgPopupConfigure -> WInputMsg -> ClMonad ()
 pxdgPopupConfigure Nothing _ = pure ()
 pxdgPopupConfigure (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get <*> get <*> get <*> get
+    where g = f (winpObj msg) <$> get <*> get <*> get <*> get
 
 pxdgPopupPopupDone :: Maybe TxdgPopupPopupDone -> WInputMsg -> ClMonad ()
 pxdgPopupPopupDone Nothing _ = pure ()
-pxdgPopupPopupDone (Just f) _msg = f
+pxdgPopupPopupDone (Just f) msg = f (winpObj msg)
 
 pxdgPopupRepositioned :: Maybe TxdgPopupRepositioned -> WInputMsg -> ClMonad ()
 pxdgPopupRepositioned Nothing _ = pure ()
 pxdgPopupRepositioned (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
-    where g = f <$> get
+    where g = f (winpObj msg) <$> get
 
 -- ** Listeners for all Interfaces
 

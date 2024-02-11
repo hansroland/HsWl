@@ -87,12 +87,12 @@ genReqInterface ifac =
   then
     sectiontit ("Interface: " <> ifaName ifac <> " - " <> descrSummary (ifaDescr ifac)) <>
     bnl <>
-    genRequests (nameInterface ifac) (ifaRequests ifac)
+    genRequests (ifaRequests ifac)
   else
     fromText T.empty
 
-genRequests :: Text -> [WlRequest] -> Builder
-genRequests ifacname reqs = mconcat $ map (genRequest ifacname) reqs
+genRequests :: [WlRequest] -> Builder
+genRequests reqs = mconcat $ map genRequest reqs
 
 -- | Generate a single request
 --
@@ -116,8 +116,8 @@ genRequests ifacname reqs = mconcat $ map (genRequest ifacname) reqs
 --     api....  The type /name  for the argument to generate the request functions.
 -- The lines marked with an left arrow, are only generated when we have an
 -- argument of type ` WNewId`.
-genRequest :: Text -> WlRequest -> Builder
-genRequest ifacName req =
+genRequest :: WlRequest -> Builder
+genRequest req =
   funtit ("Request opc: " <> tshow (reqOpc req) <> " - " <> descrSummary (reqDescr req)) <>
       fromText (reqName req) <> genReqType <>
       fromText (reqName req) <> genReqBody
@@ -141,7 +141,7 @@ genRequest ifacName req =
 
     -- Generate the type annotation for the request function
     genReqType :: Builder
-    genReqType = genLine $ " :: "  <> mconcat itypes
+    genReqType = genLine $ " :: WObj -> "  <> mconcat itypes
       where
         itypes = intersperse " -> " (apiTypes <> [retValue])
         retValue =
@@ -152,7 +152,7 @@ genRequest ifacName req =
     -- Generate the body of the request function
     genReqBody :: Builder
     genReqBody
-        = fromText (" " <> T.intercalate " " xmlNames <> " = ")
+        = fromText (" " <> T.intercalate " " ("wobj" : xmlNames) <> " = ")
                <> genReqDoHeader
                <> genReqDoArgs
                <> genReqDoWhere
@@ -161,7 +161,6 @@ genRequest ifacName req =
     -- Generate the first do block
     genReqDoHeader :: Builder
     genReqDoHeader = genLine "do" <>
-        indent 4 <> genLine ("wobj <- getObjectId " <> ifacName)  <>
         (if null changedXmlNames
           then fromText ""
           else indent 4 <> genLine (changedApiName <> " <- createNewId " <> changedXmlName)) <>
@@ -241,7 +240,7 @@ genRequest ifacName req =
 -- ----------------------------------------------------------------------
 
 -- Generate Event Function Types
--- > type TwlRegistryGlobal = WUint -> WString -> WUint -> ClMonad ()
+-- > type TwlRegistryGlobal = WObj -> WUint -> WString -> WUint -> ClMonad ()
 
 -- Generate the Event function types for a single interface
 genEventFunTypes :: WlInterface -> Builder
@@ -249,7 +248,7 @@ genEventFunTypes ifac = mconcat  (map genEventFunType $ ifaEvents ifac)
 
 genEventFunType :: WlRequest -> Builder
 genEventFunType req =
-  fromText ("type " <> nameEventFunctionType req <> " = ")
+  fromText ("type " <> nameEventFunctionType req <> " = WObj -> ")
     <> genEvTypes req <> bnl
 
 genEvTypes :: WlRequest -> Builder
@@ -263,12 +262,12 @@ genEvTypes req = mconcat $ map fromText types
 -- > pwlRegistryGlobal :: Maybe TwlRegistryGlobal -> ClState -> WInputMsg -> IO ()
 -- > pwlRegistryGlobal Nothing _ _ = pure ()
 -- > pwlRegistryGlobal (Just f) msg = runGet g $ BL.fromStrict $ winpData msg
--- >         where g = f <$> get <*> get <*> get
+-- >         where g = f (winpObj msg) <$> get <*> get <*> get
 
 -- -- For event functions without arguments
 -- > pwlBufferRelease :: Maybe TwlBufferRelease -> InputMsg -> ClMonad ()
 -- > pwlBufferRelease Nothing _ = pure ()
--- > pwlBufferRelease (Just f) _msg = f
+-- > pwlBufferRelease (Just f) msg = f (winpObj msg)
 
 genProxyFunctions :: WlInterface -> Builder
 genProxyFunctions ifac = mconcat  (map genProxyFunction $ ifaEvents ifac)
@@ -284,10 +283,10 @@ genProxyFunction req =
     args =  intersperse " <*> " (map (const "get") (reqArgs req))
     genArgs =
       if null (reqArgs req)
-      then fromText (proxyName <> " (Just f) _msg = f")
+      then fromText (proxyName <> " (Just f) msg = f (winpObj msg)")
       else
         genLine (proxyName <> " (Just f) msg = runGet g $ BL.fromStrict $ winpData msg") <>
-        indent 4 <> fromText ("where g = f <$> " <> mconcat args)
+        indent 4 <> fromText ("where g = f (winpObj msg) <$> " <> mconcat args)
 
 
 -- Generate Listeners for all Interfaces (with all its events)

@@ -26,11 +26,12 @@ main = do
 -- ---------------------------------------------------------------------------
 runClient :: Socket.Socket -> ClMonad ()
 runClient serverSock = do
-    _ <- wlDisplayGetRegistry cWlRegistry
+    display <- getObjectId cWlDisplay
+    _ <- wlDisplayGetRegistry display cWlRegistry
     setDisplayListener myDisplayListener
     setRegistryListener myRegistryListener
     setCallbackListener myCallbackListener
-    _ <- wlDisplaySync cWlCallback
+    _ <- wlDisplaySync display cWlCallback
     sendRequests serverSock
     socketRead serverSock
 
@@ -50,11 +51,13 @@ runClient serverSock = do
     setSeatListener myWlSeatListener
     setPointerListener myWlPointerListener
 
-    surface <- wlCompositorCreateSurface cWlSurface
-    xdgSurface <- xdgWmBaseGetXdgSurface cXdgSurface surface
-    topLevel <- xdgSurfaceGetToplevel cXdgToplevel
-    xdgToplevelSetTitle $ WString "Example client"
-    wlSurfaceCommit
+    compositor <- getObjectId cWlCompositor
+    surface <- wlCompositorCreateSurface compositor cWlSurface
+    wmBase <- getObjectId cXdgWmBase
+    xdgSurface <- xdgWmBaseGetXdgSurface wmBase cXdgSurface surface
+    topLevel <- xdgSurfaceGetToplevel xdgSurface cXdgToplevel
+    xdgToplevelSetTitle topLevel $ WString "Example client"
+    wlSurfaceCommit surface
 
     let loop = do
           ST.liftIO $ putStrLn "Send - Read Loop"
@@ -80,7 +83,7 @@ myDisplayListener = WlDisplayListener
   (Just myDisplayDeleteId)
 
 myDisplayError :: TwlDisplayError
-myDisplayError _obj _code message = do
+myDisplayError _ _obj2 _code message = do
   ST.liftIO $ TIO.putStrLn ("wlDisplayError: " <> getString message) --TODO show also code
 
 -- When a client deletes an object that it had created,
@@ -88,7 +91,7 @@ myDisplayError _obj _code message = do
 -- 	seen the delete request. When the client receives this event,
 -- 	it will know that it can safely reuse the object ID.
 myDisplayDeleteId :: TwlDisplayDeleteId
-myDisplayDeleteId obj = do
+myDisplayDeleteId _ obj = do
     ST.liftIO $ putStrLn $ "GOT myDisplayDeleteId " <> show obj
     removeActiveIfac $ fromIntegral obj
 -- --------------------------------------------------------------------
@@ -103,7 +106,7 @@ myRegistryListener = WlRegistryListener
 -- | Event: announce global object opc:0
   -- wlRegistryGlobal :: ClState ->  WUint -> WString -> WUint -> IO ()
 myRegistryGlobal :: TwlRegistryGlobal
-myRegistryGlobal name interface version = do
+myRegistryGlobal wobj name interface version = do
    {-
     ST.liftIO $ putStrLn $ "myRegistryGlobal: "
       <> show name
@@ -111,26 +114,25 @@ myRegistryGlobal name interface version = do
       <> " " <> show interface
       <> " " <> show version
    -}
-
     case interface of
       WString "wl_compositor" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER compositor"
-        _ <- rsxRegistryBind (fromIntegral name) interface version cWlCompositor
+        _ <- rsxRegistryBind wobj (fromIntegral name) interface version cWlCompositor
         pure ()
 
       WString "wl_shm" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER wl_shm"
-        _ <- rsxRegistryBind (fromIntegral name) interface version cWlShm
+        _ <- rsxRegistryBind wobj (fromIntegral name) interface version cWlShm
         pure ()
 
       WString "xdg_wm_base" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER xdg_wm_base"
-        _ <- rsxRegistryBind (fromIntegral name) interface version cXdgWmBase
+        _ <- rsxRegistryBind wobj (fromIntegral name) interface version cXdgWmBase
         pure ()
 
       WString "wl_seat" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER wl_seat"
-        _ <- rsxRegistryBind (fromIntegral name) interface version cWlSeat
+        _ <- rsxRegistryBind wobj (fromIntegral name) interface version cWlSeat
         pure ()
 
       _ -> pure()
@@ -138,7 +140,7 @@ myRegistryGlobal name interface version = do
     pure ()
 
 myRegistryGlobalRemove :: TwlRegistryGlobalRemove
-myRegistryGlobalRemove obj = do
+myRegistryGlobalRemove _ obj = do
     ST.liftIO $ putStrLn $ "GOT myRegistryGlobalRemove " <> show obj
 -- --------------------------------------------------------------------
 
@@ -149,7 +151,7 @@ myCallbackListener = WlCallbackListener (Just myCallbackDone)
 
 
 myCallbackDone :: TwlCallbackDone
-myCallbackDone wuint =
+myCallbackDone _ wuint =
   ST.liftIO $ putStrLn $ "Received callback done for " <> show wuint
 -- --------------------------------------------------------------------
 
@@ -158,7 +160,7 @@ myShmListener :: WlShmListener
 myShmListener = WlShmListener (Just myShmFormat)
 
 myShmFormat :: TwlShmFormat
-myShmFormat format =
+myShmFormat _ format =
   ST.liftIO $ putStrLn ("Received possible wl_shm format event: " <> show format)
   -- TODO Use the enum entries
 -- --------------------------------------------------------------------
@@ -169,9 +171,9 @@ myXdgWmBaseListener :: XdgWmBaseListener
 myXdgWmBaseListener = XdgWmBaseListener (Just myXdgWmBasePing)
 
 myXdgWmBasePing :: TxdgWmBasePing
-myXdgWmBasePing serial = do
+myXdgWmBasePing wmBase serial = do
   ST.liftIO $ putStrLn "XDG PING Called"
-  xdgWmBasePong serial
+  xdgWmBasePong wmBase serial
 
 -- --------------------------------------------------------------------
 
@@ -179,9 +181,9 @@ myBufferListener :: WlBufferListener
 myBufferListener = WlBufferListener (Just myWlBufferRelease)
 
 myWlBufferRelease :: TwlBufferRelease
-myWlBufferRelease = do
+myWlBufferRelease wobj = do
   ST.liftIO $ putStrLn "Received wl_buffer_destroy event"
-  wlBufferDestroy
+  wlBufferDestroy wobj
 
 
 -- Define callback functions for the xdg_toplevel object
@@ -189,8 +191,7 @@ myXdgToplevelListener :: XdgToplevelListener
 myXdgToplevelListener = XdgToplevelListener (Just myXdgToplevelConfigure) Nothing
 
 myXdgToplevelConfigure :: TxdgToplevelConfigure
-myXdgToplevelConfigure width height states = do
-  -- ST.liftIO $ putStrLn "Received XdgToplevelConfigure event. width: "
+myXdgToplevelConfigure _ width height states = do
   ST.liftIO $ putStrLn ("Received XdgToplevelConfigure event. width: "
       <> show width <> " height:" <> show height <> " states:" <> show states)
 -- --------------------------------------------------------------------
@@ -199,12 +200,15 @@ myXdgSurfaceListener :: XdgSurfaceListener
 myXdgSurfaceListener = XdgSurfaceListener (Just myXdgSurfaceConfigure)
 
 myXdgSurfaceConfigure :: TxdgSurfaceConfigure
-myXdgSurfaceConfigure serial = do
+myXdgSurfaceConfigure wobj serial = do
   ST.liftIO $ putStrLn "XDGConfigureHandler called"
-  xdgSurfaceAckConfigure serial
-  buffer <- drawFrame
-  _ <- wlSurfaceAttach buffer 0 0
-  wlSurfaceCommit
+  xdgSurfaceAckConfigure wobj serial
+  shm <- getObjectId cWlShm                      -- TODO Remove this getObjectId Its WRONG
+  buffer <- drawFrame shm
+  surface <- getObjectId cWlSurface              -- TODO Remove this getObjectId Its WRONG
+                                                 -- Store surface in xdgSurface !!!
+  _ <- wlSurfaceAttach surface buffer 0 0
+  wlSurfaceCommit surface
   pure ()
 
 -- --------------------------------------------------------------------
@@ -215,14 +219,14 @@ myWlSeatListener = WlSeatListener
                       (Just myWlSeatName)
 
 myWlSeatCapabilities  :: TwlSeatCapabilities
-myWlSeatCapabilities capa = do
+myWlSeatCapabilities wobj capa = do
     ST.liftIO $ putStrLn ("WlSeatCapabilities called capa: " <> show capa)
     -- Bitwise 1 = pointer
     -- Bitwise 2 = keyboard
     if capa .&. 1 == 1
       then do
         ST.liftIO $ putStrLn "Pointer is available"
-        pointer <- wlSeatGetPointer "wl_pointer"
+        _pointer <- wlSeatGetPointer wobj "wl_pointer"
         pure ()
       else ST.liftIO $ putStrLn "Pointer is missing"
     if capa .&. 2 == 2
@@ -237,12 +241,12 @@ myWlSeatCapabilities capa = do
 
 
 myWlSeatName :: TwlSeatName
-myWlSeatName name = do
+myWlSeatName _ name = do
    ST.liftIO $ putStrLn ("WlSeatName name: " <> show name)
    pure ()
 
 -- --------------------------------------------------------------------
-
+myWlPointerListener :: WlPointerListener
 myWlPointerListener = WlPointerListener
     (Just myWlPointerEnter)
     (Just myWlPointerLeave)
@@ -255,49 +259,49 @@ myWlPointerListener = WlPointerListener
     (Just myWlPointerAxisDiscrete)
 
 myWlPointerEnter :: TwlPointerEnter
-myWlPointerEnter serial surface surfaceX surfaceY = do
+myWlPointerEnter _wobj _serial _surface _surfaceX _surfaceY = do
     ST.liftIO $ putStrLn "wlPointerEnter"
     pure ()
 
 myWlPointerLeave :: TwlPointerLeave
-myWlPointerLeave serial surface = do
+myWlPointerLeave _wobj _serial _surface = do
     ST.liftIO $ putStrLn "wlPointerLeave"
     pure ()
 
 myWlPointerMotion :: TwlPointerMotion
-myWlPointerMotion time surfaceX surfaceY = do
+myWlPointerMotion _wobj _time _surfaceX _surfaceY = do
     pure ()
 
 myWlPointerButton :: TwlPointerButton
-myWlPointerButton serial time button state = do
+myWlPointerButton _wobj _serial _time _button _state = do
     ST.liftIO $ putStrLn "wlPointerButton"
     pure ()
 
 myWlPointerAxis :: TwlPointerAxis
-myWlPointerAxis time axis value = do
+myWlPointerAxis _wobj _time _axis _value = do
     pure ()
 
 myWlPointerFrame :: TwlPointerFrame
-myWlPointerFrame = do
+myWlPointerFrame _wobj = do
     pure ()
 
 myWlPointerAxisSource :: TwlPointerAxisSource
-myWlPointerAxisSource axisSource = do
+myWlPointerAxisSource _wobj _axisSource = do
     pure ()
 
 myWlPointerAxisStop :: TwlPointerAxisStop
-myWlPointerAxisStop time axis = do
+myWlPointerAxisStop _wobj _time _axis = do
     pure ()
 
 myWlPointerAxisDiscrete :: TwlPointerAxisDiscrete
-myWlPointerAxisDiscrete axis discrete = do
+myWlPointerAxisDiscrete _wobj _axis _discrete = do
     pure ()
 
 -- --------------------------------------------------------------------
 -- Create and fill a buffer
 -- --------------------------------------------------------------------
-drawFrame :: ClMonad WObj
-drawFrame {-shm-} = do
+drawFrame :: WObj -> ClMonad WObj
+drawFrame shm = do
   ST.liftIO $ putStrLn "drawFrame active"
   let width  = 640 :: Int
       height = 480 :: Int
@@ -311,10 +315,10 @@ drawFrame {-shm-} = do
   fmemAddr <- ST.liftIO $ newForeignPtr_ memAddr
   ST.liftIO $ fillBuffer fmemAddr width height
   -- myPutStrLn (" memAddr " ++ show memAddr ++ " " ++ show cMAP_FAILED)
-  shmPool <- wlShmCreatePool cWlShmPool (fromIntegral fd) (fromIntegral size)
-  buffer <- wlShmPoolCreateBuffer cWlBuffer 0
+  shmPool <- wlShmCreatePool shm cWlShmPool (fromIntegral fd) (fromIntegral size)
+  buffer <- wlShmPoolCreateBuffer shmPool cWlBuffer 0
             (fromIntegral width) (fromIntegral height) (fromIntegral stride) wL_SHM_FORMAT_XRGB8888
-  wlShmPoolDestroy
+  wlShmPoolDestroy shmPool
   -- The fd will be closed, after it has been sent to the server
   ST.liftIO $ munmap memAddr (fromIntegral size)
   pure buffer

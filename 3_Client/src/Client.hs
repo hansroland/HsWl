@@ -14,9 +14,8 @@ import           Control.Monad.State.Strict
 import qualified Data.Text as T
 
 -- Note the wlRegistryBind function in the xml file is wrong
-rsxRegistryBind :: WUint -> WString -> WUint -> T.Text -> ClMonad WObj
-rsxRegistryBind name interface version xid = do
-   wobj <- getObjectId cWlRegistry
+rsxRegistryBind :: WObj -> WUint -> WString -> WUint -> T.Text -> ClMonad WObj
+rsxRegistryBind wobj name interface version xid = do
    xid' <- createNewId xid
    addRequest $ runByteString $ do
       BP.put wobj
