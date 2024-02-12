@@ -17,7 +17,8 @@ import qualified Control.Monad              as M
 import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)
 import qualified Data.Text as T
 import Data.Text (Text)
-import Data.List (find)
+import Data.EnumMap.Strict (EnumMap)
+import qualified Data.EnumMap.Strict        as Map
 import System.Posix.Types (Fd)
 
 type ClMonad a = ST.StateT ClState IO a
@@ -1614,7 +1615,7 @@ data ClState = ClState {
     clgSurfaceListener :: Maybe XdgSurfaceListener,
     clgToplevelListener :: Maybe XdgToplevelListener,
     clgPopupListener :: Maybe XdgPopupListener,
-    clActiveIfaces :: [IfacKey],
+    clActiveIfaces :: EnumMap WObj WObject,
     clReqs :: [BS.ByteString],
     clFds :: [Fd]}
 
@@ -1748,10 +1749,11 @@ dispatchEvent :: WInputMsg -> ClMonad ()
 dispatchEvent msg = do
     st <- ST.get
     ST.liftIO $ print msg
-    let wopc = winpOpc msg
-        ifName = fromMaybe T.empty (lookup (winpObj msg) (clActiveIfaces st))
+    let wobj = winpObj msg
+        wopc = winpOpc msg
+        ifName = ifacName $ fromMaybe emptyWObject (Map.lookup wobj (clActiveIfaces st))
     ST.liftIO $ M.when (T.null ifName)
-        $ unhandledEv ((T.pack . show) (winpObj msg)) wopc
+        $ unhandledEv ((T.pack . show) wobj) wopc
     case ifName of
         "wl_display" -> do
           let listener = clDisplayListener st
@@ -1936,9 +1938,9 @@ dispatchEvent msg = do
 createNewId :: Text -> ClMonad WNewId
 createNewId txt = do
     st <- ST.get
-    let usedObj = map fst $ clActiveIfaces st
+    let usedObj = Map.keys $ clActiveIfaces st
         newObj = head $ filter(`notElem` usedObj) [1..]
-        newActives = (newObj, txt) : clActiveIfaces st
+        newActives = Map.insert newObj (WObject txt []) (clActiveIfaces st)
     ST.liftIO $ putStrLn ("CREATE new WOBJ for " <> T.unpack txt <> ": " <> show newObj)
     ST.put $ st { clActiveIfaces = newActives }
     pure $ fromIntegral newObj
@@ -1957,9 +1959,4 @@ addFd fd = do
     ST.liftIO $ putStrLn $ "Add Fd: " <> show fd
     ST.put $ st {clFds = fd : clFds st}
 
--- Get an WObj from the interface text name
-getObjectId :: Text -> ClMonad WObj
-getObjectId txt = do
-    st <- ST.get
-    pure $ fst $ fromMaybe (0, T.empty) (find ((==) txt . snd ) (clActiveIfaces st))
 

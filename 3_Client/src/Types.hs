@@ -6,9 +6,11 @@ module Types where
 import Data.Word
 import Data.Text (Text)
 import Data.Bits
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Control.Monad as M
+import qualified Data.Text                  as T
+import qualified Data.Text.Encoding         as T
+import qualified Control.Monad              as M
+import Data.EnumMap.Strict (EnumMap)
+import qualified Data.EnumMap.Strict        as Map
 
 import Data.Binary
 import Data.Binary.Put
@@ -22,6 +24,7 @@ import qualified Data.ByteString       as BS
 -- Wayland types on the wire
 -- --------------------------------------------------------------------
 
+-- | Wayland wire object id - The 32 bit object id we send and receive over the wire
 newtype WObj = WObj Word32
     deriving (Eq, Ord, Enum, Num)
     deriving newtype (Read, Show, Integral, Real)
@@ -30,9 +33,10 @@ instance Binary WObj where
     put (WObj n) = putWord32host n
     get = WObj <$> getWord32host
 
+-- | The types WNewId and WObj are identical
 type WNewId = WObj  -- Do not distinguish between WNewId and WObj
 
-
+-- Object code: Request or event code of a Wayland wire message
 newtype WOpc = WOpc Word16
     deriving (Eq, Ord, Enum, Num)
     deriving newtype (Read, Show, Integral, Real)
@@ -91,16 +95,31 @@ instance Binary WArray where
     put (WArray _s) = error "put instance for WArray not yet defined"
     get = parseWArray
 
+-- | Wayland Object as we use it in the client.
+data WObject = WObject
+    { ifacName :: Text                     -- eg "wl_display"
+    , ifacLink :: [(WObj, Text)]           -- Links to other objects  of this interface
+    }
 
-type IfacKey = (WObj, Text)
+addLink :: (WObj,Text) -> WObject -> WObject
+addLink link wobject = wobject { ifacLink = link : ifacLink wobject }
+
+-- | The object id of WlDisplay is fixed 1
+wlDisplayWObj :: WObj
+wlDisplayWObj = 1
+
+emptyWObject :: WObject
+emptyWObject = WObject T.empty []
 
 -- | printActiveIfaces - for debugging
-printActiveIfaces :: [IfacKey] -> IO ()
-printActiveIfaces keys = do
-    putStrLn ("ACTIVE Interfaces: " <> concatMap showIfac keys)
+printActiveIfaces :: EnumMap WObj WObject -> IO ()
+printActiveIfaces ifaces = do
+    putStrLn ("ACTIVE Interfaces: " <> concatMap showIfac assocs)
   where
-    showIfac :: IfacKey -> String
-    showIfac (obj, txt ) = "(" <> show obj <> ", "  <> T.unpack txt  <> ")"
+    assocs = Map.assocs ifaces
+    showIfac :: (WObj, WObject) -> String
+    showIfac (wobj, WObject name _subs) = "(" <> show wobj <> ", "  <> T.unpack name  <>
+     " subs:" <> show _subs <> ")"
 
 
 parseWString :: Get WString
@@ -134,7 +153,7 @@ putWString (WString txt) = do
         pad = paddedLength len - len
     putWord32host $ fromIntegral len
     putByteString $ T.encodeUtf8 txt
-    putWord8 0                 -- terminating NUL byte
+    putWord8 0   -- terminating NUL byte
     M.replicateM_ pad $ putWord8 0
 
 calcWStringLength :: WString -> Int

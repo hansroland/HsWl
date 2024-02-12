@@ -26,12 +26,11 @@ main = do
 -- ---------------------------------------------------------------------------
 runClient :: Socket.Socket -> ClMonad ()
 runClient serverSock = do
-    display <- getObjectId cWlDisplay
-    _ <- wlDisplayGetRegistry display cWlRegistry
+    _ <- wlDisplayGetRegistry wlDisplayWObj cWlRegistry
     setDisplayListener myDisplayListener
     setRegistryListener myRegistryListener
     setCallbackListener myCallbackListener
-    _ <- wlDisplaySync display cWlCallback
+    _ <- wlDisplaySync wlDisplayWObj cWlCallback
     sendRequests serverSock
     socketRead serverSock
 
@@ -51,10 +50,11 @@ runClient serverSock = do
     setSeatListener myWlSeatListener
     setPointerListener myWlPointerListener
 
-    compositor <- getObjectId cWlCompositor
+    compositor <- getWObjForGlobal cWlCompositor
     surface <- wlCompositorCreateSurface compositor cWlSurface
-    wmBase <- getObjectId cXdgWmBase
+    wmBase <- getWObjForGlobal cXdgWmBase
     xdgSurface <- xdgWmBaseGetXdgSurface wmBase cXdgSurface surface
+    addLinkTo (surface, cWlSurface)  xdgSurface
     topLevel <- xdgSurfaceGetToplevel xdgSurface cXdgToplevel
     xdgToplevelSetTitle topLevel $ WString "Example client"
     wlSurfaceCommit surface
@@ -201,12 +201,11 @@ myXdgSurfaceListener = XdgSurfaceListener (Just myXdgSurfaceConfigure)
 
 myXdgSurfaceConfigure :: TxdgSurfaceConfigure
 myXdgSurfaceConfigure wobj serial = do
-  ST.liftIO $ putStrLn "XDGConfigureHandler called"
+  ST.liftIO $ putStrLn ("XDGConfigureHandler called wobj:" <> show wobj)
   xdgSurfaceAckConfigure wobj serial
-  shm <- getObjectId cWlShm                      -- TODO Remove this getObjectId Its WRONG
+  shm <- getWObjForGlobal cWlShm
   buffer <- drawFrame shm
-  surface <- getObjectId cWlSurface              -- TODO Remove this getObjectId Its WRONG
-                                                 -- Store surface in xdgSurface !!!
+  surface <- getWObjLink wobj cWlSurface
   _ <- wlSurfaceAttach surface buffer 0 0
   wlSurfaceCommit surface
   pure ()

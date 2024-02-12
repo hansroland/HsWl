@@ -13,6 +13,9 @@ import           Data.Text (Text)
 import qualified Data.ByteString            as BL
 import qualified Data.Text                  as T
 import qualified Data.Text.IO               as TIO
+import Data.EnumMap.Strict (EnumMap)
+import qualified Data.EnumMap.Strict        as Map
+
 
 import Text.Printf
 
@@ -24,8 +27,8 @@ unhandledEv :: Text -> WOpc -> IO()
 unhandledEv ifName opc = TIO.putStrLn $
    "ATTENTION UNHANDLED EVENT " <> ifName <> " " <>  T.pack (show opc)
 
-initActiveIfaces :: [IfacKey]
-initActiveIfaces = [ (1, "wl_display")]
+initActiveIfaces :: EnumMap WObj WObject
+initActiveIfaces = Map.singleton wlDisplayWObj  (WObject "wl_display" [])
 
 toHexText :: BL.ByteString -> Text
 toHexText =  T.pack . toHexString

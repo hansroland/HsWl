@@ -58,7 +58,8 @@ genModuleHeader = genLine "{-# LANGUAGE OverloadedStrings #-}"
     <> genLine "import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)"
     <> genLine "import qualified Data.Text as T"
     <> genLine "import Data.Text (Text)"
-    <> genLine "import Data.List (find)"
+    <> genLine "import Data.EnumMap.Strict (EnumMap)"
+    <> genLine "import qualified Data.EnumMap.Strict        as Map"
     <> genLine "import System.Posix.Types (Fd)"
     <> bnl
 
@@ -323,7 +324,7 @@ genListenerField req = fromText (reqName req <> " :: Maybe " <>
 -- > data ClState = ClState {
 -- >     clRegistryListener :: Maybe WlRegistryListener,
 -- >     < more of the above lines for each interface>
--- >     clActiveIfaces :: [IfacKey],
+-- >     clActiveIfaces :: EnumMap WObj WObject,
 -- >     clReqs :: [BS.ByteString] }
 genClStateData :: [WlInterface] -> Builder
 genClStateData ifacs = genClStateDataHeader
@@ -341,7 +342,7 @@ genClStateDataListener ifac =
 
 genClStateDataEnd :: Builder
 genClStateDataEnd = indent 4 <>
-    genLine "clActiveIfaces :: [IfacKey],"
+    genLine "clActiveIfaces :: EnumMap WObj WObject,"
     <> indent 4 <> genLine "clReqs :: [BS.ByteString],"
     <> indent 4 <> genLine "clFds :: [Fd]}"
 
@@ -401,12 +402,11 @@ genSetListener ifac = genLine (nameSetListenerFunc ifac
 -- > dispatchEvent msg = do
 -- >     st <- ST.get
 -- >     ST.liftIO $ print msg
--- >     let wopc = winpOpc msg
--- >     let ifName = fromMaybe T.empty (lookup (winpObj msg) (clActiveIfaces st))
+-- >     let wobj = winpObj msg
+-- >         wopc = winpOpc msg
+-- >         ifName = ifacName $ fromMaybe emptyWObject (Map.lookup wobj (clActiveIfaces st))
 -- >     ST.liftIO $ M.when (T.null ifName)
--- >          $ unhandledEv (tshow (winpObj msg)) wopc
--- >     -- ST.liftIO $ putStrLn $ "dispatchEvent for " <>
--- >     --     show ifName <> " obj:" <> show (winpObj msg) <> " opc:" <> show wopc
+-- >          $ unhandledEv ((T.pack . show) wobj) wopc
 -- >     case ifName of
 -- >             "wl_registry"  -> do
 -- >                 let listener = clRegistryListener st
@@ -429,10 +429,11 @@ genDispatchEventHeader =
     genLine "dispatchEvent msg = do" <>
     indent 4 <> genLine "st <- ST.get" <>
     indent 4 <> genLine "ST.liftIO $ print msg" <>
-    indent 4 <> genLine "let wopc = winpOpc msg" <>
-    indent 8 <> genLine "ifName = fromMaybe T.empty (lookup (winpObj msg) (clActiveIfaces st))" <>
+    indent 4 <> genLine "let wobj = winpObj msg" <>
+    indent 8 <> genLine "wopc = winpOpc msg" <>
+    indent 8 <> genLine "ifName = ifacName $ fromMaybe emptyWObject (Map.lookup wobj (clActiveIfaces st))" <>
     indent 4 <> genLine "ST.liftIO $ M.when (T.null ifName)" <>
-    indent 8 <> genLine "$ unhandledEv ((T.pack . show) (winpObj msg)) wopc" <>
+    indent 8 <> genLine "$ unhandledEv ((T.pack . show) wobj) wopc" <>
     -- indent 4 <> genLine "ST.liftIO $ putStrLn $ \"dispatchEvent for \" <> " <>
     -- indent 8 <> genLine "show ifName <> \" obj:\" <> show (winpObj msg) <> \" opc:\" <> show wopc" <>
     indent 4 <> genLine "case ifName of"
@@ -469,9 +470,9 @@ genSupportFunctions =
   <> genLine "createNewId :: Text -> ClMonad WNewId"
   <> genLine "createNewId txt = do"
   <> indent 4 <> genLine "st <- ST.get"
-  <> indent 4 <> genLine "let usedObj = map fst $ clActiveIfaces st"
+  <> indent 4 <> genLine "let usedObj = Map.keys $ clActiveIfaces st"
   <> indent 8 <> genLine "newObj = head $ filter(`notElem` usedObj) [1..]"
-  <> indent 8 <> genLine "newActives = (newObj, txt) : clActiveIfaces st"
+  <> indent 8 <> genLine "newActives = Map.insert newObj (WObject txt []) (clActiveIfaces st)"
   <> indent 4 <> genLine "ST.liftIO $ putStrLn (\"CREATE new WOBJ for \" <> T.unpack txt <> \": \" <> show newObj)"
   <> indent 4 <> genLine "ST.put $ st { clActiveIfaces = newActives }"
   <> indent 4 <> genLine "pure $ fromIntegral newObj" <> bnl
@@ -489,13 +490,6 @@ genSupportFunctions =
   <> indent 4 <> genLine "st <- ST.get"
   <> indent 4 <> genLine "ST.liftIO $ putStrLn $ \"Add Fd: \" <> show fd"
   <> indent 4 <> genLine "ST.put $ st {clFds = fd : clFds st}" <> bnl
-
-  <> genLine "-- Get an WObj from the interface text name"
-  <> genLine "getObjectId :: Text -> ClMonad WObj"
-  <> genLine "getObjectId txt = do"
-  <> indent 4 <> genLine "st <- ST.get"
-  <> indent 4 <> genLine "pure $ fst $ fromMaybe (0, T.empty) (find ((==) txt . snd ) (clActiveIfaces st))"
-
 
 -- --------------------------------------------------------------------
 -- Helper Functions to Generate Names

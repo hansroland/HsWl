@@ -42,8 +42,8 @@ splitMsgs inp =
             len = fromIntegral $ runGet getWord16host end
         in BL.splitAt len bs
 
-getWInpMsg :: BL.ByteString -> WInputMsg
-getWInpMsg = runGet go
+parseWInpMsg :: BL.ByteString -> WInputMsg
+parseWInpMsg = runGet go
   where
     go ::  Get WInputMsg
     go  = do
@@ -125,7 +125,7 @@ socketRead serverSock = do
     let bsl = BL.fromStrict bs
     let blocks = splitMsgs bsl
     -- liftIO $ mapM_ (putStrLn . toHexString) blocks
-    let msgs = map getWInpMsg blocks
+    let msgs = map parseWInpMsg blocks
     -- liftIO $ mapM_ print msgs
     mapM_ dispatchEvent msgs
     --
