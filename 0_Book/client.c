@@ -10,6 +10,7 @@
 #include <wayland-client.h>
 #include "xdg-shell-client-protocol.h"
 #include <stdio.h>
+#include <cairo.h>
 
 /* Shared memory support code */
 static void
@@ -83,11 +84,28 @@ static const struct wl_buffer_listener wl_buffer_listener = {
     .release = wl_buffer_release,
 };
 
+static void
+fill_frame (uint32_t * data, int width, int height)
+{
+    cairo_surface_t * surface =
+        cairo_image_surface_create_for_data(data, CAIRO_FORMAT_ARGB32, width, height, width*4);
+    cairo_t *cr = cairo_create (surface);
+
+    cairo_select_font_face (cr, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size (cr, 32.0);
+    cairo_set_source_rgb (cr, 0.0, 0.0, 1.0);
+    cairo_move_to (cr, 10.0, 50.0);
+    cairo_show_text (cr, "Hello, world");
+
+    cairo_destroy (cr);
+    cairo_surface_destroy (surface);
+}
+
 static struct wl_buffer *
 draw_frame(struct client_state *state)
 {
     printf ("RSX draw_frame\n");
-    const int width = 640, height = 480;
+    const int width = 240, height = 80;
     int stride = width * 4;
     int size = stride * height;
 
@@ -109,15 +127,8 @@ draw_frame(struct client_state *state)
     wl_shm_pool_destroy(pool);
     close(fd);
 
-    /* Draw checkerboxed background */
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            if ((x + y / 8 * 8) % 16 < 8)
-                data[y * width + x] = 0xFF666666;
-            else
-                data[y * width + x] = 0xFFEEEEEE;
-        }
-    }
+    // Fill the frame with pixels
+    fill_frame(data, width, height);
 
     munmap(data, size);
     wl_buffer_add_listener(buffer, &wl_buffer_listener, NULL);
@@ -138,7 +149,7 @@ xdg_surface_configure(void *data,
 }
 
 static const struct xdg_surface_listener xdg_surface_listener = {
-    .configure = xdg_surface_configure,
+    .configure = xdg_surface_configure
 };
 
 static void
