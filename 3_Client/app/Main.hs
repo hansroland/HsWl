@@ -7,15 +7,13 @@ import Types
 import Client
 import ClientSupport
 import Shm
+import FillFrame
 
 import qualified Network.Socket             as Socket
 import qualified Control.Monad.State.Strict as ST
 import qualified Data.Text.IO               as TIO
-
-import Foreign (ForeignPtr, nullPtr, withForeignPtr, newForeignPtr_, pokeElemOff)
-import Data.Word (Word32)
-import Control.Monad
-import Data.Bits
+import Foreign (nullPtr, newForeignPtr_)
+import           Data.Bits
 
 main :: IO ()
 main = do
@@ -302,18 +300,17 @@ myWlPointerAxisDiscrete _wobj _axis _discrete = do
 drawFrame :: WObj -> ClMonad WObj
 drawFrame shm = do
   ST.liftIO $ putStrLn "drawFrame active"
-  let width  = 640 :: Int
-      height = 480 :: Int
-      stride = width * (4 :: Int)              -- 2560
-      size   = stride * height                 -- 1228800  x'012C00'
+  let width  = 240                             -- 640 :: Int
+      height = 80                              -- 480 :: Int
+      stride = width * (4 :: Int)
+      size   = stride * height
 
   fd <- ST.liftIO $ allocateShmFile size
   ST.liftIO $ putStrLn $ "drawFrame fd: " <> show fd
   memAddr <- ST.liftIO $ mmap nullPtr (fromIntegral size)
             (cPROT_READ + cPROT_WRITE) cMAP_SHARED (fromIntegral fd) 0
   fmemAddr <- ST.liftIO $ newForeignPtr_ memAddr
-  ST.liftIO $ fillBuffer fmemAddr width height
-  -- myPutStrLn (" memAddr " ++ show memAddr ++ " " ++ show cMAP_FAILED)
+  ST.liftIO $ fillFrame fmemAddr width height
   shmPool <- wlShmCreatePool shm cWlShmPool (fromIntegral fd) (fromIntegral size)
   buffer <- wlShmPoolCreateBuffer shmPool cWlBuffer 0
             (fromIntegral width) (fromIntegral height) (fromIntegral stride) wL_SHM_FORMAT_XRGB8888
@@ -321,19 +318,3 @@ drawFrame shm = do
   -- The fd will be closed, after it has been sent to the server
   ST.liftIO $ munmap memAddr (fromIntegral size)
   pure buffer
-
-fillBuffer :: ForeignPtr Word32 -> Int -> Int ->IO ()
-fillBuffer ptr width heigth = do
-    withForeignPtr ptr $ \p ->
-      forM_ [0..heigth-1] $ \y ->
-        forM_ [0..width-1] $ \x ->
-          pokeElemOff p (x + y * width) (calcColor x y)       -- color value
-    pure ()
-
-calcColor :: Int -> Int -> Word32
-calcColor x y =
-  let ex = even (x `div` 10)
-      ey = even (y `div` 10)
-  in if (ex && ey) || (not ex && not ey)
-      then 0XFF00FFFF
-      else 0XFFFF0000

@@ -25,7 +25,8 @@ library
                       , ClientSupport
                       , Shm
                       , Socket
-    -- other-modules:    WaylandSocket
+                      , FillFrame
+    -- other-modules:
     -- C-sources:           cbits/wayland-msg-handling.c
     -- include-dirs:        cbits
     -- other-extensions:
@@ -39,6 +40,7 @@ library
                       , binary
                       , random-strings
                       , enummapset
+                      , cairo
     hs-source-dirs:   src
     default-language: Haskell2010
 
@@ -51,7 +53,5 @@ executable client
                       , text
                       , network
                       , Client
-
-
     hs-source-dirs:   app
     default-language: Haskell2010
