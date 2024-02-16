@@ -1,7 +1,7 @@
 {-# Language GeneralisedNewtypeDeriving, DerivingStrategies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Types where
+module Wayland.Client.Types where
 
 import Data.Word
 import Data.Text (Text)

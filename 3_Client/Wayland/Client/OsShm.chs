@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 
-module Shm where
+module Wayland.Client.OsShm where
 
 import Test.RandomStrings
 

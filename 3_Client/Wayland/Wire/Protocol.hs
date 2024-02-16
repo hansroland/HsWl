@@ -2,9 +2,9 @@
 
 -- *** ATTENTION *** Generated Code *** DO NOT MODIFY
 
-module Protocol where
-import Types
-import ProtocolSupport
+module Wayland.Wire.Protocol where
+import Wayland.Client.Types
+import Wayland.Wire.Support
 
 import Data.Binary
 import Data.Binary.Put
@@ -216,7 +216,7 @@ wlDataOfferAccept wobj serial mimeType = do
         putWord16host $ fromIntegral len
         put serial
         put mimeType
-  where len = 12 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
+  where len = 12 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> [])
 
 -- | Request opc: 1 - request that the data is transferred
 wlDataOfferReceive :: WObj -> WString -> Fd -> ClMonad ()
@@ -228,7 +228,7 @@ wlDataOfferReceive wobj mimeType fd = do
         putWord16host $ fromIntegral len
         put mimeType
         put fd
-  where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
+  where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> [])
 
 -- | Request opc: 2 - destroy data offer
 wlDataOfferDestroy :: WObj -> ClMonad ()
@@ -266,7 +266,7 @@ wlDataSourceOffer wobj mimeType = do
         put $ WOpc 0
         putWord16host $ fromIntegral len
         put mimeType
-  where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> []) 
+  where len = 8 + sum (calcWStringLength <$> [mimeType])  + sum (calcWArrayLength  <$> [])
 
 -- | Request opc: 1 - destroy the data source
 wlDataSourceDestroy :: WObj -> ClMonad ()
@@ -450,7 +450,7 @@ wlShellSurfaceSetTitle wobj title = do
         put $ WOpc 8
         putWord16host $ fromIntegral len
         put title
-  where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> []) 
+  where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> [])
 
 -- | Request opc: 9 - set surface class
 wlShellSurfaceSetClass :: WObj -> WString -> ClMonad ()
@@ -460,7 +460,7 @@ wlShellSurfaceSetClass wobj xclass = do
         put $ WOpc 9
         putWord16host $ fromIntegral len
         put xclass
-  where len = 8 + sum (calcWStringLength <$> [xclass])  + sum (calcWArrayLength  <$> []) 
+  where len = 8 + sum (calcWStringLength <$> [xclass])  + sum (calcWArrayLength  <$> [])
 
 -- ** Interface: WlSurface - an onscreen surface
 
@@ -887,7 +887,7 @@ xdgPositionerSetReactive wobj = do
         put $ WOpc 7
         putWord16host 8
 
--- | Request opc: 8 - 
+-- | Request opc: 8 -
 xdgPositionerSetParentSize :: WObj -> WInt -> WInt -> ClMonad ()
 xdgPositionerSetParentSize wobj parentWidth parentHeight = do
     addRequest $ runByteString $ do
@@ -988,7 +988,7 @@ xdgToplevelSetTitle wobj title = do
         put $ WOpc 2
         putWord16host $ fromIntegral len
         put title
-  where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> []) 
+  where len = 8 + sum (calcWStringLength <$> [title])  + sum (calcWArrayLength  <$> [])
 
 -- | Request opc: 3 - set application ID
 xdgToplevelSetAppId :: WObj -> WString -> ClMonad ()
@@ -998,7 +998,7 @@ xdgToplevelSetAppId wobj appId = do
         put $ WOpc 3
         putWord16host $ fromIntegral len
         put appId
-  where len = 8 + sum (calcWStringLength <$> [appId])  + sum (calcWArrayLength  <$> []) 
+  where len = 8 + sum (calcWStringLength <$> [appId])  + sum (calcWArrayLength  <$> [])
 
 -- | Request opc: 4 - show the window menu
 xdgToplevelShowWindowMenu :: WObj -> WObj -> WUint -> WInt -> WInt -> ClMonad ()

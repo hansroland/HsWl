@@ -18,15 +18,26 @@ common warnings
 
 library
     import:           warnings
-    exposed-modules:  ClientLib
-                      , Types
-                      , Protocol
-                      , ProtocolSupport
-                      , ClientLibSupport
-                      , Shm
-                      , Socket
-                      , FillFrame
-    -- other-modules:
+    exposed-modules:  Wayland.Client.Client
+                      Wayland.Wire.Wire
+
+    other-modules:    Wayland.Client.Buffer
+                      Wayland.Client.Callback
+                      Wayland.Client.Display
+                      Wayland.Client.Registry
+                      Wayland.Client.Shm
+                      Wayland.Client.OsShm
+                      Wayland.Client.Seat
+                      Wayland.Client.Types
+                      Wayland.Client.Support
+                      Wayland.Client.XdgSurface
+                      Wayland.Client.XdgToplevel
+                      Wayland.Client.XdgWmBase
+                      Wayland.Wire.Protocol
+                      Wayland.Wire.Support
+                      Wayland.Wire.Socket
+                      Wayland.Client.FillFrame
+
     -- C-sources:           cbits/wayland-msg-handling.c
     -- include-dirs:        cbits
     -- other-extensions:
@@ -41,7 +52,7 @@ library
                       , random-strings
                       , enummapset
                       , cairo
-    hs-source-dirs:   src
+    -- hs-source-dirs:   src
     default-language: Haskell2010
 
 executable client

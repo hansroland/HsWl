@@ -1,11 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ClientLibSupport
+module Wayland.Wire.Wire
 where
 
-import Protocol
-import Types
-import Socket
+import Wayland.Client.Types
+
+import Wayland.Wire.Protocol
+import Wayland.Wire.Socket
 
 import Data.Binary.Get
 
@@ -147,7 +148,3 @@ sendRequests serverSock = do
     collectFds = do reverse . clFds <$> get
     collectRequests :: ClMonad BS.ByteString
     collectRequests = do mconcat . reverse . clReqs <$> get
-
-
-
-

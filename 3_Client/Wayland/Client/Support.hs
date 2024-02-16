@@ -1,16 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ClientLib where
+module Wayland.Client.Support where
 
--- import ClientSupport
-import Protocol
-import ProtocolSupport
-import Types
+import Wayland.Client.Types
+import Wayland.Wire.Protocol
 
-import qualified Data.Binary                as BP
-import qualified Data.Binary.Put            as BP
-
-import Data.EnumMap.Strict (EnumMap)
 import qualified Data.EnumMap.Strict        as Map
 
 import           Control.Monad.State.Strict
@@ -18,29 +12,9 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Maybe (fromMaybe)
 
--- Note the wlRegistryBind function in the xml file is wrong
-rsxRegistryBind :: WObj -> WUint -> WString -> WUint -> T.Text -> ClMonad WObj
-rsxRegistryBind wobj name interface version xid = do
-   xid' <- createNewId xid
-   addRequest $ runByteString $ do
-      BP.put wobj
-      BP.put $ WOpc 0
-      BP.putWord16host $ fromIntegral $ 20 + calcWStringLength interface
-      BP.put name
-      BP.put interface
-      BP.put version
-      BP.put xid'
-   pure xid'
 
 -- * Management (non request) functions
 
--- | removeActiveIfac remove an interface from the map of active interfaces
-removeActiveIfac :: WObj -> ClMonad ()
-removeActiveIfac wobj  = do
-    st <- get
-    let newacts =  Map.delete wobj $ clActiveIfaces st
-    liftIO $ printActiveIfaces newacts
-    put $ st {clActiveIfaces = newacts }
 
 -- | Get the WObj of the specified global interface
 getWObjForGlobal :: Text -> ClMonad WObj

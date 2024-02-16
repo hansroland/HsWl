@@ -1,4 +1,4 @@
-module FillFrame
+module Wayland.Client.FillFrame
 where
 
 import Graphics.Rendering.Cairo
