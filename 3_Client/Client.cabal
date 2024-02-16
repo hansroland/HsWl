@@ -18,11 +18,11 @@ common warnings
 
 library
     import:           warnings
-    exposed-modules:  Client
+    exposed-modules:  ClientLib
                       , Types
                       , Protocol
                       , ProtocolSupport
-                      , ClientSupport
+                      , ClientLibSupport
                       , Shm
                       , Socket
                       , FillFrame

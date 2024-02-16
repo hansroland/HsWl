@@ -4,8 +4,8 @@ module Main where
 
 import Protocol
 import Types
-import Client
-import ClientSupport
+import ClientLib
+import ClientLibSupport
 import Shm
 import FillFrame
 
@@ -105,13 +105,11 @@ myRegistryListener = WlRegistryListener
   -- wlRegistryGlobal :: ClState ->  WUint -> WString -> WUint -> IO ()
 myRegistryGlobal :: TwlRegistryGlobal
 myRegistryGlobal wobj name interface version = do
-   {-
     ST.liftIO $ putStrLn $ "myRegistryGlobal: "
       <> show name
       <> " " <> show name
       <> " " <> show interface
       <> " " <> show version
-   -}
     case interface of
       WString "wl_compositor" -> do
         ST.liftIO $ putStrLn "GOTCHA REGISTER compositor"
@@ -132,6 +130,14 @@ myRegistryGlobal wobj name interface version = do
         ST.liftIO $ putStrLn "GOTCHA REGISTER wl_seat"
         _ <- rsxRegistryBind wobj (fromIntegral name) interface version cWlSeat
         pure ()
+
+{-
+      WString "zxdg_decoration_manager_v1" -> do
+        ST.liftIO $ putStrLn "GOTCHA REGISTER zxdg_decoration_manager_v1"
+        _ <- rsxRegistryBind wobj (fromIntegral name) interface version deora
+        pure ()
+-}
+
 
       _ -> pure()
 

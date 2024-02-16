@@ -70,15 +70,15 @@ socketSend bs fds socketFd = do
             when (len < 0) $ ioError $ userError "sendmsg failed"
             pure len
   where
-    -- Calculate the length of the cmsg_buf
+    -- Calculate the length of the output cmsg_buf
     calcCmsgLen :: Int
     calcCmsgLen = 16 + 4 * length fds
 
 -- | Socket receive data
 --   At the moment, we ignore the Fds. We need an example to test...
---  +-----------+-----------+-----------------+
---  |   IOVec   |   MsgHdr  |  Inputdata (bs) |
---  +-----------+-----------+-----------------+
+--  +-----------+-----------+--------+----------------+
+--  |   IOVec   |   MsgHdr  |  CMsg  | Inputdata (bs) |
+--  +-----------+-----------+--------+----------------+
 socketReceive :: Socket.Socket -> IO BS.ByteString
 socketReceive serverSock = Socket.withFdSocket serverSock socketReceive'
 
@@ -86,12 +86,14 @@ socketReceive' :: CInt -> IO BS.ByteString
 socketReceive' socketFd = do
     let iovlen = {#sizeof iovec #}
         msglen = {#sizeof msghdr#}
-    let bufflen = iovlen + msglen + 4096
+        cmsglen = 512
+    let bufflen = iovlen + msglen + cmsglen + 4096
     CC.threadWaitRead $ fromIntegral socketFd
     allocaBytes bufflen $ \bufPtr -> do
         let ptrIov = castPtr bufPtr
             ptrMsg = plusPtr ptrIov iovlen
-            ptrBs = plusPtr ptrMsg msglen
+            ptrCmsg = plusPtr ptrMsg msglen
+            ptrBs = plusPtr ptrCmsg cmsglen
         -- Build iovec c-structure
         poke ptrIov IOVec  { iovBase = ptrBs
                            , iovLen = 4096 }
@@ -107,6 +109,8 @@ socketReceive' socketFd = do
         if len < 0
             then ioError $ userError "recvmsg failed"
             else do
+                recvdCmsgLen :: Word64 <- peek ptrCmsg
+                putStrLn $ "Received CmsgLen:" <> show (fromIntegral recvdCmsgLen)
                 BS.packCStringLen (ptrBs, fromIntegral len)
 
 -- | The Haskell version of the c-msghdr structure

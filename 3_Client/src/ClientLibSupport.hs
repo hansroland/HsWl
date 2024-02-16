@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ClientSupport
+module ClientLibSupport
 where
 
 import Protocol
