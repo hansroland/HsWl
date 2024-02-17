@@ -1,1 +1,1 @@
-cp Protocol.hs ../3_Client/src/Protocol.hs
+cp Protocol.hs ../3_Client/Wayland/Wire/Protocol.hs

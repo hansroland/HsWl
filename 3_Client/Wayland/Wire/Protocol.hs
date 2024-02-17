@@ -887,7 +887,7 @@ xdgPositionerSetReactive wobj = do
         put $ WOpc 7
         putWord16host 8
 
--- | Request opc: 8 -
+-- | Request opc: 8 - 
 xdgPositionerSetParentSize :: WObj -> WInt -> WInt -> ClMonad ()
 xdgPositionerSetParentSize wobj parentWidth parentHeight = do
     addRequest $ runByteString $ do

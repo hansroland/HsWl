@@ -45,9 +45,9 @@ genProtocol prot = genModuleHeader
 genModuleHeader :: Builder
 genModuleHeader = genLine "{-# LANGUAGE OverloadedStrings #-}"
     <> bnl <> genLine "-- *** ATTENTION *** Generated Code *** DO NOT MODIFY" <> bnl
-    <> genLine "module Protocol where"
-    <> genLine "import Types"
-    <> genLine "import ProtocolSupport" <> bnl
+    <> genLine "module Wayland.Wire.Protocol where"
+    <> genLine "import Wayland.Client.Types"
+    <> genLine "import Wayland.Wire.Support" <> bnl
     <> genLine "import Data.Binary"
     <> genLine "import Data.Binary.Put"
     <> genLine "import Data.Binary.Get" <> bnl
@@ -198,7 +198,7 @@ genRequest req =
         if needsWhere
         then indent 2 <> genLine ("where len = " <> tshow  getFixReqLength <>
             " + sum (calcWStringLength <$> " <> tshow reqStringArgs <> ") " <>
-            " + sum (calcWArrayLength  <$> " <> tshow reqArrayArgs  <> ") ")
+            " + sum (calcWArrayLength  <$> " <> tshow reqArrayArgs  <> ")")
         else fromText T.empty
 
     -- Functions to dyanmically calculate the length field of the request block
